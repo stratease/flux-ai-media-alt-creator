@@ -1,0 +1,106 @@
+{
+    "name": "flux-plugins/flux-ai-image-alt-creator",
+    "description": "AI-powered alt text generation for WordPress images using OpenAI.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Flux Plugins",
+            "email": "eddie@fluxplugins.com",
+            "homepage": "https://fluxplugins.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.0",
+        "openai-php/client": "^4.0",
+        "woocommerce/action-scheduler": "^3.7"
+    },
+    "require-dev": {
+        "brianhenryie/strauss": "^0.22.5",
+        "phpstan/phpstan": "^1.10",
+        "phpunit/phpunit": "^9.6",
+        "squizlabs/php_codesniffer": "^3.7",
+        "wp-coding-standards/wpcs": "^2.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "FluxAIMediaAltCreator\\App\\": "app/",
+            "FluxAIMediaAltCreator\\Config\\": "config/",
+            "FluxAIMediaAltCreator\\Database\\": "database/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "FluxAIMediaAltCreator\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "test:unit": "phpunit tests/unit",
+        "test:coverage": "phpunit --coverage-html coverage tests/unit",
+        "phpstan": "phpstan analyse",
+        "phpcs": "phpcs --standard=WordPress app/ config/ database/ tests/",
+        "phpcbf": "phpcbf --standard=WordPress app/ config/ database/ tests/",
+        "quality": [
+            "@phpcs",
+            "@phpstan",
+            "@test"
+        ],
+        "prefix-namespaces": [
+            "sh -c 'test -f ./bin/strauss.phar || curl -o bin/strauss.phar -L -C - https://github.com/BrianHenryIE/strauss/releases/latest/download/strauss.phar'",
+            "@php bin/strauss.phar",
+            "@composer dump-autoload"
+        ],
+        "post-install-cmd": [
+            "@prefix-namespaces"
+        ],
+        "post-update-cmd": [
+            "@prefix-namespaces"
+        ],
+        "post-autoload-dump": [
+            "@php bin/strauss.phar include-autoloader"
+        ]
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        },
+        "optimize-autoloader": true,
+        "sort-packages": true
+    },
+    "extra": {
+        "strauss": {
+            "target_directory": "vendor-prefixed",
+            "namespace_prefix": "FluxAIMediaAltCreator\\",
+            "classmap_prefix": "FluxAIMediaAltCreator_",
+            "constant_prefix": "FluxAIMediaAltCreator_",
+            "packages": [
+                "openai-php/client"
+            ],
+            "update_call_sites": false,
+            "override_autoload": {
+            },
+            "exclude_from_copy": {
+                "packages": [
+                ],
+                "namespaces": [
+                ],
+                "file_patterns": [
+                ]
+            },
+            "exclude_from_prefix": {
+                "packages": [
+                ],
+                "namespaces": [
+                ],
+                "file_patterns": [
+                ]
+            },
+            "namespace_replacement_patterns": {
+            },
+            "delete_vendor_packages": true,
+            "delete_vendor_files": true
+        }
+    }
+}
+
