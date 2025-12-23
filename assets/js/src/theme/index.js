@@ -1,4 +1,5 @@
 import { createTheme } from '@mui/material/styles';
+import { css } from '@emotion/react';
 
 /**
  * Flux Media Optimizer theme configuration

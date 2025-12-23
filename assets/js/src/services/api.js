@@ -89,10 +89,13 @@ class ApiService {
     });
   }
 
-  async applyAltText(mediaIds) {
+  async applyAltText(mediaIds, altTexts = {}) {
     return this.request('/alt-text/apply', {
       method: 'POST',
-      body: JSON.stringify({ media_ids: mediaIds }),
+      body: JSON.stringify({ 
+        media_ids: mediaIds,
+        alt_texts: altTexts,
+      }),
     });
   }
 

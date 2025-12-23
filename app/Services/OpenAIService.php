@@ -78,19 +78,18 @@ class OpenAIService {
 			return null;
 		}
 
-		// Check if Pro plugin is handling this.
 		/**
-		 * Filter to allow Pro plugin to override alt text generation.
+		 * Filter to allow overriding alt text generation.
 		 *
 		 * @since 1.0.0
 		 * @param null|string $alt_text Alt text (null to use default generation).
 		 * @param string      $media_url Media URL.
 		 * @param int         $media_id Media ID.
 		 */
-		$pro_alt_text = apply_filters( 'flux_ai_alt_creator_generate_alt_text', null, '', 0 );
+		$alt_text_override = apply_filters( 'flux_ai_alt_creator_generate_alt_text', null, '', 0 );
 		
-		if ( $pro_alt_text !== null ) {
-			// Pro plugin is handling generation, don't initialize client.
+		if ( $alt_text_override !== null ) {
+			// Override is handling generation, don't initialize client.
 			return null;
 		}
 
@@ -118,14 +117,21 @@ class OpenAIService {
 		 */
 		do_action( 'flux_ai_alt_creator_before_generate_alt_text', $media_url, $media_id );
 
-		// Check if Pro plugin is handling this.
-		$pro_alt_text = apply_filters( 'flux_ai_alt_creator_generate_alt_text', null, $media_url, $media_id );
+		/**
+		 * Filter to allow overriding alt text generation.
+		 *
+		 * @since 1.0.0
+		 * @param null|string $alt_text Alt text (null to use default generation).
+		 * @param string      $media_url Media URL.
+		 * @param int         $media_id Media ID.
+		 */
+		$alt_text_override = apply_filters( 'flux_ai_alt_creator_generate_alt_text', null, $media_url, $media_id );
 		
-		if ( $pro_alt_text !== null ) {
-			// Pro plugin handled generation.
+		if ( $alt_text_override !== null ) {
+			// Override handled generation.
 			$result = [
 				'success' => true,
-				'alt_text' => $pro_alt_text,
+				'alt_text' => $alt_text_override,
 				'tokens_used' => 0,
 				'cost' => 0.0,
 			];
@@ -234,7 +240,7 @@ class OpenAIService {
 	 * @return string Prompt text.
 	 */
 	private function get_alt_text_prompt() {
-		return __( 'Generate a concise, descriptive alt text for this media file that accurately describes its content and context. The alt text should be helpful for screen readers and should not exceed 125 characters.', 'flux-ai-media-alt-creator' );
+		return __( 'Generate a concise, SEO friendly alt text for this media file that accurately describes its content and context. The alt text should be helpful for screen readers and should not exceed 125 characters.', 'flux-ai-media-alt-creator' );
 	}
 }
 

@@ -28,8 +28,8 @@ export const useApplyAltText = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (mediaIds) => {
-      return apiService.applyAltText(mediaIds);
+    mutationFn: ({ mediaIds, altTexts = {} }) => {
+      return apiService.applyAltText(mediaIds, altTexts);
     },
     onSuccess: () => {
       // Invalidate media query to refresh data

@@ -90,22 +90,27 @@ class AltTextController extends BaseController {
 			],
 		] );
 
-		register_rest_route( 'flux-ai-media-alt-creator/v1', '/alt-text/apply', [
-			[
-				'methods' => 'POST',
-				'callback' => [ $this, 'apply_alt_text' ],
-				'permission_callback' => [ $this, 'check_permissions' ],
-				'args' => [
-					'media_ids' => [
-						'required' => true,
-						'type' => 'array',
-						'items' => [
-							'type' => 'integer',
-						],
-					],
-				],
-			],
-		] );
+            register_rest_route( 'flux-ai-media-alt-creator/v1', '/alt-text/apply', [
+                [
+                    'methods' => 'POST',
+                    'callback' => [ $this, 'apply_alt_text' ],
+                    'permission_callback' => [ $this, 'check_permissions' ],
+                    'args' => [
+                        'media_ids' => [
+                            'required' => true,
+                            'type' => 'array',
+                            'items' => [
+                                'type' => 'integer',
+                            ],
+                        ],
+                        'alt_texts' => [
+                            'required' => false,
+                            'type' => 'object',
+                            'description' => 'Map of media_id => alt_text for custom alt text values',
+                        ],
+                    ],
+                ],
+            ] );
 
 		register_rest_route( 'flux-ai-media-alt-creator/v1', '/alt-text/batch-generate', [
 			[
@@ -213,6 +218,7 @@ class AltTextController extends BaseController {
 	public function apply_alt_text( WP_REST_Request $request ) {
 		try {
 			$media_ids = $request->get_param( 'media_ids' );
+			$alt_texts = $request->get_param( 'alt_texts' ) ?? [];
 
 			if ( empty( $media_ids ) || ! is_array( $media_ids ) ) {
 				return $this->create_error_response( 'Invalid media IDs', 'invalid_media_ids', 400 );
@@ -220,29 +226,37 @@ class AltTextController extends BaseController {
 
 			$results = [];
 			foreach ( $media_ids as $media_id ) {
-				$scan_data = $this->media_scanner->get_scan_data( $media_id );
+				// Use custom alt text if provided, otherwise use recommended from scan data.
+				$alt_text = '';
+				if ( isset( $alt_texts[ $media_id ] ) && ! empty( $alt_texts[ $media_id ] ) ) {
+					$alt_text = sanitize_text_field( $alt_texts[ $media_id ] );
+				} else {
+					$scan_data = $this->media_scanner->get_scan_data( $media_id );
+					$alt_text = $scan_data['recommended_alt_text'] ?? '';
+				}
 
-				if ( empty( $scan_data['recommended_alt_text'] ) ) {
+				if ( empty( $alt_text ) ) {
 					$results[] = [
 						'media_id' => $media_id,
 						'success' => false,
-						'error' => 'No recommended alt text found',
+						'error' => 'No alt text provided',
 					];
 					continue;
 				}
 
 				// Apply alt text.
-				update_post_meta( $media_id, '_wp_attachment_image_alt', $scan_data['recommended_alt_text'] );
+				update_post_meta( $media_id, '_wp_attachment_image_alt', $alt_text );
 
-				// Mark as applied.
+				// Update scan data with the applied alt text.
 				$this->media_scanner->update_scan_data( $media_id, [
 					'applied' => true,
+					'recommended_alt_text' => $alt_text,
 				] );
 
 				$results[] = [
 					'media_id' => $media_id,
 					'success' => true,
-					'alt_text' => $scan_data['recommended_alt_text'],
+					'alt_text' => $alt_text,
 				];
 			}
 
