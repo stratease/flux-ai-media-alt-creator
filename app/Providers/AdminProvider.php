@@ -44,6 +44,41 @@ class AdminProvider {
 	public function init() {
 		add_action( 'admin_menu', [ $this, 'add_admin_menu' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_scripts' ] );
+		add_action( 'admin_notices', [ $this, 'show_api_key_notice' ] );
+	}
+
+	/**
+	 * Show admin notice if API key is not configured.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	public function show_api_key_notice() {
+		// Only show on our admin page.
+		$screen = get_current_screen();
+		if ( ! $screen || 'media_page_flux-ai-media-alt-creator' !== $screen->id ) {
+			return;
+		}
+
+		$api_key = Settings::get_openai_api_key();
+		
+		if ( empty( $api_key ) ) {
+			$settings_url = admin_url( 'upload.php?page=flux-ai-media-alt-creator#/settings' );
+			?>
+			<div class="notice notice-error">
+				<p>
+					<strong><?php esc_html_e( 'Flux AI Media Alt Creator:', 'flux-ai-media-alt-creator' ); ?></strong>
+					<?php
+					printf(
+						/* translators: %s: Settings page URL */
+						wp_kses_post( __( 'OpenAI API key is not configured. Please <a href="%s">add your API key in Settings</a> to enable alt text generation.', 'flux-ai-media-alt-creator' ) ),
+						esc_url( $settings_url )
+					);
+					?>
+				</p>
+			</div>
+			<?php
+		}
 	}
 
 	/**
@@ -56,7 +91,7 @@ class AdminProvider {
 		add_submenu_page(
 			'upload.php', // Parent: Media
 			__( 'AI Media Alt Creator', 'flux-ai-media-alt-creator' ),
-			__( 'AI Alt Creator', 'flux-ai-media-alt-creator' ),
+			__( 'AI Media Alt Creator', 'flux-ai-media-alt-creator' ),
 			'manage_options',
 			'flux-ai-media-alt-creator',
 			[ $this, 'render_main_page' ]

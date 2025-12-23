@@ -8,12 +8,12 @@ export const useGenerateAltText = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: ({ imageIds, async = false }) => {
-      return apiService.generateAltText(imageIds, async);
+    mutationFn: ({ mediaIds, async = false }) => {
+      return apiService.generateAltText(mediaIds, async);
     },
     onSuccess: () => {
-      // Invalidate images query to refresh data
-      queryClient.invalidateQueries({ queryKey: ['images'] });
+      // Invalidate media query to refresh data
+      queryClient.invalidateQueries({ queryKey: ['media'] });
     },
     onError: (error) => {
       console.error('Failed to generate alt text:', error);
@@ -28,12 +28,12 @@ export const useApplyAltText = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (imageIds) => {
-      return apiService.applyAltText(imageIds);
+    mutationFn: (mediaIds) => {
+      return apiService.applyAltText(mediaIds);
     },
     onSuccess: () => {
-      // Invalidate images query to refresh data
-      queryClient.invalidateQueries({ queryKey: ['images'] });
+      // Invalidate media query to refresh data
+      queryClient.invalidateQueries({ queryKey: ['media'] });
     },
     onError: (error) => {
       console.error('Failed to apply alt text:', error);
@@ -48,12 +48,12 @@ export const useBatchGenerateAltText = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: ({ imageIds, batchSize = 10 }) => {
-      return apiService.batchGenerateAltText(imageIds, batchSize);
+    mutationFn: ({ mediaIds, batchSize = 10 }) => {
+      return apiService.batchGenerateAltText(mediaIds, batchSize);
     },
     onSuccess: () => {
-      // Invalidate images query to refresh data
-      queryClient.invalidateQueries({ queryKey: ['images'] });
+      // Invalidate media query to refresh data
+      queryClient.invalidateQueries({ queryKey: ['media'] });
     },
     onError: (error) => {
       console.error('Failed to schedule batch generation:', error);

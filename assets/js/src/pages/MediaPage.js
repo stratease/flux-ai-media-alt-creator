@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -18,71 +18,114 @@ import {
   Alert,
   Stack,
   CircularProgress,
+  FormGroup,
+  FormControlLabel,
+  TextField,
 } from '@mui/material';
 import { __ } from '@wordpress/i18n';
-import { useImages } from '../hooks/useImages';
+import { useMedia, useMediaTypeGroups } from '../hooks/useMedia';
 import { useGenerateAltText, useApplyAltText, useBatchGenerateAltText } from '../hooks/useAltText';
 
 /**
- * Images page component with paginated list and bulk actions
+ * Media page component with paginated list and bulk actions
+ * 
+ * The filters state can be extended by other plugins to add custom search parameters.
+ * Filters are passed to the backend and processed through WordPress hooks:
+ * - flux_ai_alt_creator_search_mime_types
+ * - flux_ai_alt_creator_additional_query_args
+ * - flux_ai_alt_creator_scan_query_args
+ * 
+ * See HOOKS.md for documentation on extending search functionality.
  */
-const ImagesPage = () => {
+const MediaPage = () => {
   const [page, setPage] = useState(1);
-  const [selectedImages, setSelectedImages] = useState([]);
+  const [selectedMedia, setSelectedMedia] = useState([]);
   const [search, setSearch] = useState('');
+  // Filters state - can be extended by other plugins to add custom search parameters
+  const [filters, setFilters] = useState({});
+  const [selectedMediaTypes, setSelectedMediaTypes] = useState(['images']); // Default to images only
   const perPage = 20;
 
-  const { data, isLoading, error } = useImages(page, perPage, search);
+  // Fetch available media type groups
+  const { data: mediaTypeGroups, isLoading: loadingGroups } = useMediaTypeGroups();
+  
+  // Update filters when media types change
+  useEffect(() => {
+    if (selectedMediaTypes.length > 0) {
+      setFilters(prev => ({
+        ...prev,
+        media_types: selectedMediaTypes,
+      }));
+    } else {
+      // If no types selected, default to images
+      setFilters(prev => ({
+        ...prev,
+        media_types: ['images'],
+      }));
+    }
+  }, [selectedMediaTypes]);
+
+  const { data, isLoading, error } = useMedia(page, perPage, search, filters);
   const generateMutation = useGenerateAltText();
   const applyMutation = useApplyAltText();
   const batchGenerateMutation = useBatchGenerateAltText();
 
   const handleSelectAll = (event) => {
     if (event.target.checked) {
-      setSelectedImages(data?.data?.map(img => img.id) || []);
+      setSelectedMedia(data?.data?.map(item => item.id) || []);
     } else {
-      setSelectedImages([]);
+      setSelectedMedia([]);
     }
   };
 
-  const handleSelectImage = (imageId) => {
-    setSelectedImages(prev => {
-      if (prev.includes(imageId)) {
-        return prev.filter(id => id !== imageId);
+  const handleSelectMedia = (mediaId) => {
+    setSelectedMedia(prev => {
+      if (prev.includes(mediaId)) {
+        return prev.filter(id => id !== mediaId);
       } else {
-        return [...prev, imageId];
+        return [...prev, mediaId];
+      }
+    });
+  };
+
+  const handleMediaTypeChange = (mediaTypeId) => {
+    setSelectedMediaTypes(prev => {
+      if (prev.includes(mediaTypeId)) {
+        return prev.filter(id => id !== mediaTypeId);
+      } else {
+        return [...prev, mediaTypeId];
       }
     });
   };
 
   const handleGenerateAltText = async () => {
-    if (selectedImages.length === 0) return;
+    if (selectedMedia.length === 0) return;
     
     try {
-      await generateMutation.mutateAsync({ imageIds: selectedImages, async: false });
-      setSelectedImages([]);
+      await generateMutation.mutateAsync({ mediaIds: selectedMedia, async: false });
+      setSelectedMedia([]);
     } catch (error) {
       console.error('Failed to generate alt text:', error);
     }
   };
 
   const handleApplyAltText = async () => {
-    if (selectedImages.length === 0) return;
+    if (selectedMedia.length === 0) return;
     
     try {
-      await applyMutation.mutateAsync(selectedImages);
-      setSelectedImages([]);
+      await applyMutation.mutateAsync(selectedMedia);
+      setSelectedMedia([]);
     } catch (error) {
       console.error('Failed to apply alt text:', error);
     }
   };
 
   const handleBatchGenerate = async () => {
-    if (selectedImages.length === 0) return;
+    if (selectedMedia.length === 0) return;
     
     try {
-      await batchGenerateMutation.mutateAsync({ imageIds: selectedImages, batchSize: 10 });
-      setSelectedImages([]);
+      await batchGenerateMutation.mutateAsync({ mediaIds: selectedMedia, batchSize: 10 });
+      setSelectedMedia([]);
     } catch (error) {
       console.error('Failed to schedule batch generation:', error);
     }
@@ -117,7 +160,7 @@ const ImagesPage = () => {
   if (error) {
     return (
       <Alert severity="error">
-        {__('Failed to load images. Please try again.', 'flux-ai-media-alt-creator')}
+        {__('Failed to load media files. Please try again.', 'flux-ai-media-alt-creator')}
       </Alert>
     );
   }
@@ -126,13 +169,13 @@ const ImagesPage = () => {
     <Box>
       <Stack direction="row" spacing={2} sx={{ mb: 3, alignItems: 'center', justifyContent: 'space-between' }}>
         <Typography variant="h5">
-          {__('Images Without Alt Text', 'flux-ai-media-alt-creator')}
+          {__('Media Files Without Alt Text', 'flux-ai-media-alt-creator')}
         </Typography>
         <Stack direction="row" spacing={2}>
           <Button
             variant="contained"
             onClick={handleGenerateAltText}
-            disabled={selectedImages.length === 0 || generateMutation.isPending}
+            disabled={selectedMedia.length === 0 || generateMutation.isPending}
           >
             {generateMutation.isPending ? <CircularProgress size={20} /> : __('Generate AI Alt Text', 'flux-ai-media-alt-creator')}
           </Button>
@@ -140,19 +183,56 @@ const ImagesPage = () => {
             variant="contained"
             color="secondary"
             onClick={handleBatchGenerate}
-            disabled={selectedImages.length === 0 || batchGenerateMutation.isPending}
+            disabled={selectedMedia.length === 0 || batchGenerateMutation.isPending}
           >
             {batchGenerateMutation.isPending ? <CircularProgress size={20} /> : __('Generate in Background', 'flux-ai-media-alt-creator')}
           </Button>
           <Button
             variant="outlined"
             onClick={handleApplyAltText}
-            disabled={selectedImages.length === 0 || applyMutation.isPending}
+            disabled={selectedMedia.length === 0 || applyMutation.isPending}
           >
             {applyMutation.isPending ? <CircularProgress size={20} /> : __('Apply Alt Text', 'flux-ai-media-alt-creator')}
           </Button>
         </Stack>
       </Stack>
+
+      {/* Media Type Filters */}
+      {!loadingGroups && mediaTypeGroups && mediaTypeGroups.length > 0 && (
+        <Paper sx={{ p: 2, mb: 3 }}>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            {__('Filter by Media Type', 'flux-ai-media-alt-creator')}
+          </Typography>
+          <FormGroup row>
+            {mediaTypeGroups.map((group) => (
+              <FormControlLabel
+                key={group.id}
+                control={
+                  <Checkbox
+                    checked={selectedMediaTypes.includes(group.id)}
+                    onChange={() => handleMediaTypeChange(group.id)}
+                  />
+                }
+                label={group.label}
+              />
+            ))}
+          </FormGroup>
+        </Paper>
+      )}
+
+      {/* Search */}
+      <Box sx={{ mb: 2 }}>
+        <TextField
+          fullWidth
+          placeholder={__('Search media files...', 'flux-ai-media-alt-creator')}
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1); // Reset to first page on search
+          }}
+          size="small"
+        />
+      </Box>
 
       {isLoading ? (
         <TableContainer component={Paper}>
@@ -187,8 +267,8 @@ const ImagesPage = () => {
                 <TableRow>
                   <TableCell padding="checkbox">
                     <Checkbox
-                      indeterminate={selectedImages.length > 0 && selectedImages.length < (data?.data?.length || 0)}
-                      checked={data?.data?.length > 0 && selectedImages.length === data?.data?.length}
+                      indeterminate={selectedMedia.length > 0 && selectedMedia.length < (data?.data?.length || 0)}
+                      checked={data?.data?.length > 0 && selectedMedia.length === data?.data?.length}
                       onChange={handleSelectAll}
                     />
                   </TableCell>
@@ -200,38 +280,38 @@ const ImagesPage = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {data?.data?.map((image) => (
-                  <TableRow key={image.id}>
+                {data?.data?.map((media) => (
+                  <TableRow key={media.id}>
                     <TableCell padding="checkbox">
                       <Checkbox
-                        checked={selectedImages.includes(image.id)}
-                        onChange={() => handleSelectImage(image.id)}
+                        checked={selectedMedia.includes(media.id)}
+                        onChange={() => handleSelectMedia(media.id)}
                       />
                     </TableCell>
                     <TableCell>
-                      {image.thumbnail_url ? (
-                        <img src={image.thumbnail_url} alt="" style={{ width: 50, height: 50, objectFit: 'cover' }} />
+                      {media.thumbnail_url ? (
+                        <img src={media.thumbnail_url} alt="" style={{ width: 50, height: 50, objectFit: 'cover' }} />
                       ) : (
                         <Box sx={{ width: 50, height: 50, bgcolor: 'grey.200' }} />
                       )}
                     </TableCell>
-                    <TableCell>{image.filename}</TableCell>
+                    <TableCell>{media.filename}</TableCell>
                     <TableCell>
                       <Chip
-                        label={getStatusLabel(image.ai_status)}
-                        color={getStatusColor(image.ai_status)}
+                        label={getStatusLabel(media.ai_status)}
+                        color={getStatusColor(media.ai_status)}
                         size="small"
                       />
                     </TableCell>
                     <TableCell>
-                      {image.recommended_alt_text || (
+                      {media.recommended_alt_text || (
                         <Typography variant="body2" color="text.secondary">
                           {__('No recommendation yet', 'flux-ai-media-alt-creator')}
                         </Typography>
                       )}
                     </TableCell>
                     <TableCell>
-                      <Link href={image.edit_url} target="_blank" rel="noopener noreferrer">
+                      <Link href={media.edit_url} target="_blank" rel="noopener noreferrer">
                         {__('Edit', 'flux-ai-media-alt-creator')}
                       </Link>
                     </TableCell>
@@ -257,5 +337,5 @@ const ImagesPage = () => {
   );
 };
 
-export default ImagesPage;
+export default MediaPage;
 

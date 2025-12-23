@@ -10,7 +10,7 @@ namespace FluxAIMediaAltCreator\App;
 
 use FluxAIMediaAltCreator\App\Services\Logger;
 use FluxAIMediaAltCreator\App\Services\Settings;
-use FluxAIMediaAltCreator\App\Services\ImageScanner;
+use FluxAIMediaAltCreator\App\Services\MediaScanner;
 use FluxAIMediaAltCreator\App\Services\OpenAIService;
 use FluxAIMediaAltCreator\App\Services\UsageTracker;
 use FluxAIMediaAltCreator\App\Services\AsyncJobService;
@@ -18,7 +18,7 @@ use FluxAIMediaAltCreator\App\Services\ActionSchedulerService;
 
 use FluxAIMediaAltCreator\App\Providers\AdminProvider;
 use FluxAIMediaAltCreator\App\Providers\ApiProvider;
-use FluxAIMediaAltCreator\App\Providers\ImageScanProvider;
+use FluxAIMediaAltCreator\App\Providers\MediaScanProvider;
 use FluxAIMediaAltCreator\App\Providers\AltTextProvider;
 use FluxAIMediaAltCreator\App\Providers\UsageTrackingProvider;
 
@@ -46,12 +46,12 @@ class Plugin {
 	private $settings;
 
 	/**
-	 * Image scanner instance.
+	 * Media scanner instance.
 	 *
 	 * @since 1.0.0
-	 * @var ImageScanner
+	 * @var MediaScanner
 	 */
-	private $image_scanner;
+	private $media_scanner;
 
 	/**
 	 * OpenAI service instance.
@@ -104,11 +104,14 @@ class Plugin {
 		// Initialize OpenAI service.
 		$this->openai_service = new OpenAIService( $this->logger, $this->usage_tracker );
 		
-		// Initialize image scanner.
-		$this->image_scanner = new ImageScanner( $this->logger );
+		// Initialize media scanner.
+		$this->media_scanner = new MediaScanner( $this->logger );
+		
+		// Set default image MIME types via hook.
+		add_filter( 'flux_ai_alt_creator_default_mime_types', [ $this, 'get_default_image_mime_types' ], 10, 2 );
 		
 		// Initialize async job service.
-		$this->async_job_service = new AsyncJobService( $this->logger, $this->openai_service, $this->image_scanner );
+		$this->async_job_service = new AsyncJobService( $this->logger, $this->openai_service, $this->media_scanner );
 		
 		// Initialize Action Scheduler service.
 		$action_scheduler_service = new ActionSchedulerService( $this->logger, $this->async_job_service );
@@ -136,15 +139,15 @@ class Plugin {
 		// API provider - handles REST API routes.
 		$this->providers['api'] = new ApiProvider(
 			$this->settings,
-			$this->image_scanner,
+			$this->media_scanner,
 			$this->openai_service,
 			$this->usage_tracker,
 			$this->async_job_service,
 			$this->logger
 		);
 		
-		// Image scan provider - handles image scanning hooks.
-		$this->providers['image_scan'] = new ImageScanProvider( $this->image_scanner, $this->logger );
+		// Media scan provider - handles media scanning hooks.
+		$this->providers['media_scan'] = new MediaScanProvider( $this->media_scanner, $this->logger );
 		
 		// Alt text provider - handles alt text generation hooks.
 		$this->providers['alt_text'] = new AltTextProvider( $this->openai_service, $this->logger );
@@ -174,13 +177,44 @@ class Plugin {
 	}
 
 	/**
-	 * Get the image scanner instance.
+	 * Get the media scanner instance.
 	 *
 	 * @since 1.0.0
-	 * @return ImageScanner
+	 * @return MediaScanner
 	 */
-	public function get_image_scanner() {
-		return $this->image_scanner;
+	public function get_media_scanner() {
+		return $this->media_scanner;
+	}
+
+	/**
+	 * Get default image MIME types.
+	 *
+	 * This method provides image MIME types as the default when no other
+	 * MIME types are provided via the flux_ai_alt_creator_default_mime_types hook.
+	 *
+	 * @since 1.0.0
+	 * @param array $default_mime_types Default MIME types (empty by default).
+	 * @param array $additional_params Additional search parameters.
+	 * @return array Array of image MIME types.
+	 */
+	public function get_default_image_mime_types( $default_mime_types, $additional_params ) {
+		// Only return image types if no other defaults are set.
+		if ( empty( $default_mime_types ) ) {
+			return [
+				'image/jpeg',
+				'image/jpg',
+				'image/png',
+				'image/gif',
+				'image/webp',
+				'image/avif',
+				'image/svg+xml',
+				'image/bmp',
+				'image/tiff',
+				'image/x-icon',
+			];
+		}
+		
+		return $default_mime_types;
 	}
 
 	/**

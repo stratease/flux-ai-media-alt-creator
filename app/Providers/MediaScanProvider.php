@@ -1,6 +1,6 @@
 <?php
 /**
- * Image scan provider for registering image scanning hooks.
+ * Media scan provider for registering media scanning hooks.
  *
  * @package FluxAIMediaAltCreator
  * @since 1.0.0
@@ -8,23 +8,23 @@
 
 namespace FluxAIMediaAltCreator\App\Providers;
 
-use FluxAIMediaAltCreator\App\Services\ImageScanner;
+use FluxAIMediaAltCreator\App\Services\MediaScanner;
 use FluxAIMediaAltCreator\App\Services\Logger;
 
 /**
- * Provider for image scanning functionality.
+ * Provider for media scanning functionality.
  *
  * @since 1.0.0
  */
-class ImageScanProvider {
+class MediaScanProvider {
 
 	/**
-	 * Image scanner instance.
+	 * Media scanner instance.
 	 *
 	 * @since 1.0.0
-	 * @var ImageScanner
+	 * @var MediaScanner
 	 */
-	private $image_scanner;
+	private $media_scanner;
 
 	/**
 	 * Logger instance.
@@ -38,11 +38,11 @@ class ImageScanProvider {
 	 * Constructor.
 	 *
 	 * @since 1.0.0
-	 * @param ImageScanner $image_scanner Image scanner instance.
+	 * @param MediaScanner $media_scanner Media scanner instance.
 	 * @param Logger       $logger Logger instance.
 	 */
-	public function __construct( ImageScanner $image_scanner, Logger $logger ) {
-		$this->image_scanner = $image_scanner;
+	public function __construct( MediaScanner $media_scanner, Logger $logger ) {
+		$this->media_scanner = $media_scanner;
 		$this->logger = $logger;
 	}
 

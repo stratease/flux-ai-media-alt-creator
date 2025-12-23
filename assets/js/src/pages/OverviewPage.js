@@ -2,14 +2,14 @@ import React from 'react';
 import { Grid, Typography, Box, Paper, Skeleton } from '@mui/material';
 import { __ } from '@wordpress/i18n';
 import { useUsage } from '../hooks/useUsage';
-import { useImages } from '../hooks/useImages';
+import { useMedia } from '../hooks/useMedia';
 
 /**
  * Overview page component showing usage statistics and summary
  */
 const OverviewPage = () => {
   const { data: usage, isLoading: usageLoading } = useUsage();
-  const { data: imagesData, isLoading: imagesLoading } = useImages(1, 1);
+  const { data: mediaData, isLoading: mediaLoading } = useMedia(1, 1);
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
@@ -88,15 +88,15 @@ const OverviewPage = () => {
         {/* Images Without Alt Text */}
         <Grid item xs={12} sm={6} md={3}>
           <Paper sx={{ p: 2, textAlign: 'center' }}>
-            {imagesLoading ? (
+            {mediaLoading ? (
               <Skeleton variant="text" width="60%" height={40} sx={{ mx: 'auto' }} />
             ) : (
               <>
                 <Typography variant="h4" color="primary">
-                  {formatNumber(imagesData?.total || 0)}
+                  {formatNumber(mediaData?.total || 0)}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {__('Images Without Alt Text', 'flux-ai-media-alt-creator')}
+                  {__('Media Files Without Alt Text', 'flux-ai-media-alt-creator')}
                 </Typography>
               </>
             )}

@@ -32,12 +32,12 @@ class AsyncJobService {
 	private $openai_service;
 
 	/**
-	 * Image scanner instance.
+	 * Media scanner instance.
 	 *
 	 * @since 1.0.0
-	 * @var ImageScanner
+	 * @var MediaScanner
 	 */
-	private $image_scanner;
+	private $media_scanner;
 
 	/**
 	 * Constructor.
@@ -45,26 +45,26 @@ class AsyncJobService {
 	 * @since 1.0.0
 	 * @param Logger        $logger Logger instance.
 	 * @param OpenAIService $openai_service OpenAI service instance.
-	 * @param ImageScanner  $image_scanner Image scanner instance.
+	 * @param MediaScanner  $media_scanner Media scanner instance.
 	 */
-	public function __construct( Logger $logger, OpenAIService $openai_service, ImageScanner $image_scanner ) {
+	public function __construct( Logger $logger, OpenAIService $openai_service, MediaScanner $media_scanner ) {
 		$this->logger = $logger;
 		$this->openai_service = $openai_service;
-		$this->image_scanner = $image_scanner;
+		$this->media_scanner = $media_scanner;
 		
 		// Register action hooks.
 		$this->register_action_hooks();
 	}
 
 	/**
-	 * Schedule alt text generation for multiple images.
+	 * Schedule alt text generation for multiple media files.
 	 *
 	 * @since 1.0.0
-	 * @param array $image_ids Array of image IDs.
+	 * @param array $media_ids Array of media IDs.
 	 * @param int   $batch_size Batch size for processing.
 	 * @return int|false Number of jobs scheduled or false on failure.
 	 */
-	public function schedule_alt_text_generation( $image_ids, $batch_size = 10 ) {
+	public function schedule_alt_text_generation( $media_ids, $batch_size = 10 ) {
 		/**
 		 * Filter the batch size for async job processing.
 		 *
@@ -74,29 +74,29 @@ class AsyncJobService {
 		$batch_size = apply_filters( 'flux_ai_alt_creator_async_job_batch_size', $batch_size );
 		
 		// Split into batches.
-		$batches = array_chunk( $image_ids, $batch_size );
+		$batches = array_chunk( $media_ids, $batch_size );
 		$jobs_scheduled = 0;
-		
+
 		foreach ( $batches as $batch ) {
 			/**
 			 * Filter to allow modification of job scheduling.
 			 *
 			 * @since 1.0.0
 			 * @param bool  $should_schedule Whether to schedule this job.
-			 * @param array $batch Batch of image IDs.
+			 * @param array $batch Batch of media IDs.
 			 */
 			$should_schedule = apply_filters( 'flux_ai_alt_creator_schedule_async_job', true, $batch );
-			
+
 			if ( ! $should_schedule ) {
 				continue;
 			}
-			
+
 			// Check if Action Scheduler is available.
 			if ( function_exists( 'as_schedule_single_action' ) ) {
 				$action_id = as_schedule_single_action(
 					time(),
 					'flux_ai_alt_creator_generate_alt_text_batch',
-					[ 'image_ids' => $batch ],
+					[ 'media_ids' => $batch ],
 					'flux-ai-media-alt-creator'
 				);
 				
@@ -104,7 +104,7 @@ class AsyncJobService {
 					$jobs_scheduled++;
 					$this->logger->info( 'Scheduled alt text generation batch', [
 						'action_id' => $action_id,
-						'image_count' => count( $batch ),
+						'media_count' => count( $batch ),
 					] );
 				}
 			} else {
@@ -118,35 +118,35 @@ class AsyncJobService {
 	}
 
 	/**
-	 * Schedule alt text application for multiple images.
+	 * Schedule alt text application for multiple media files.
 	 *
 	 * @since 1.0.0
-	 * @param array $image_ids Array of image IDs.
+	 * @param array $media_ids Array of media IDs.
 	 * @return int|false Number of jobs scheduled or false on failure.
 	 */
-	public function schedule_alt_text_application( $image_ids ) {
+	public function schedule_alt_text_application( $media_ids ) {
 		// Check if Action Scheduler is available.
 		if ( function_exists( 'as_schedule_single_action' ) ) {
 			$action_id = as_schedule_single_action(
 				time(),
 				'flux_ai_alt_creator_apply_alt_text_batch',
-				[ 'image_ids' => $image_ids ],
+				[ 'media_ids' => $media_ids ],
 				'flux-ai-media-alt-creator'
 			);
-			
+
 			if ( $action_id ) {
 				$this->logger->info( 'Scheduled alt text application batch', [
 					'action_id' => $action_id,
-					'image_count' => count( $image_ids ),
+					'media_count' => count( $media_ids ),
 				] );
 				return $action_id;
 			}
 		} else {
 			// Fallback: process immediately.
-			$this->process_alt_text_application_batch( $image_ids );
+			$this->process_alt_text_application_batch( $media_ids );
 			return true;
 		}
-		
+
 		return false;
 	}
 
@@ -158,40 +158,40 @@ class AsyncJobService {
 	 * @return void
 	 */
 	public function process_alt_text_generation_batch( $args ) {
-		$image_ids = $args['image_ids'] ?? [];
-		
-		if ( empty( $image_ids ) ) {
+		$media_ids = $args['media_ids'] ?? [];
+
+		if ( empty( $media_ids ) ) {
 			return;
 		}
-		
-		foreach ( $image_ids as $image_id ) {
-			// Get image URL.
-			$image_url = wp_get_attachment_image_url( $image_id, 'full' );
-			
-			if ( ! $image_url ) {
-				$this->logger->warning( 'Could not get image URL', [ 'image_id' => $image_id ] );
-				$this->image_scanner->update_scan_data( $image_id, [
+
+		foreach ( $media_ids as $media_id ) {
+			// Get media URL.
+			$media_url = wp_get_attachment_url( $media_id );
+
+			if ( ! $media_url ) {
+				$this->logger->warning( 'Could not get media URL', [ 'media_id' => $media_id ] );
+				$this->media_scanner->update_scan_data( $media_id, [
 					'ai_status' => 'error',
-					'error_message' => __( 'Could not get image URL', 'flux-ai-media-alt-creator' ),
+					'error_message' => __( 'Could not get media URL', 'flux-ai-media-alt-creator' ),
 				] );
 				continue;
 			}
-			
+
 			// Update status to processing.
-			$this->image_scanner->update_scan_data( $image_id, [
+			$this->media_scanner->update_scan_data( $media_id, [
 				'ai_status' => 'processing',
 			] );
-			
+
 			// Generate alt text.
-			$result = $this->openai_service->generate_alt_text( $image_url, $image_id );
-			
+			$result = $this->openai_service->generate_alt_text( $media_url, $media_id );
+
 			if ( $result['success'] ) {
-				$this->image_scanner->update_scan_data( $image_id, [
+				$this->media_scanner->update_scan_data( $media_id, [
 					'ai_status' => 'completed',
 					'recommended_alt_text' => $result['alt_text'],
 				] );
 			} else {
-				$this->image_scanner->update_scan_data( $image_id, [
+				$this->media_scanner->update_scan_data( $media_id, [
 					'ai_status' => 'error',
 					'error_message' => $result['error'] ?? __( 'Unknown error', 'flux-ai-media-alt-creator' ),
 				] );
@@ -207,44 +207,44 @@ class AsyncJobService {
 	 * @return void
 	 */
 	public function process_alt_text_application_batch( $args ) {
-		$image_ids = $args['image_ids'] ?? [];
-		
-		if ( empty( $image_ids ) ) {
+		$media_ids = $args['media_ids'] ?? [];
+
+		if ( empty( $media_ids ) ) {
 			return;
 		}
-		
-		foreach ( $image_ids as $image_id ) {
-			$scan_data = $this->image_scanner->get_scan_data( $image_id );
-			
+
+		foreach ( $media_ids as $media_id ) {
+			$scan_data = $this->media_scanner->get_scan_data( $media_id );
+
 			if ( empty( $scan_data['recommended_alt_text'] ) ) {
 				continue;
 			}
-			
+
 			/**
 			 * Fires before applying alt text.
 			 *
 			 * @since 1.0.0
-			 * @param int    $image_id Image ID.
+			 * @param int    $media_id Media ID.
 			 * @param string $alt_text Alt text to apply.
 			 */
-			do_action( 'flux_ai_alt_creator_before_apply_alt_text', $image_id, $scan_data['recommended_alt_text'] );
-			
+			do_action( 'flux_ai_alt_creator_before_apply_alt_text', $media_id, $scan_data['recommended_alt_text'] );
+
 			// Apply alt text.
-			update_post_meta( $image_id, '_wp_attachment_image_alt', $scan_data['recommended_alt_text'] );
-			
+			update_post_meta( $media_id, '_wp_attachment_image_alt', $scan_data['recommended_alt_text'] );
+
 			// Mark as applied.
-			$this->image_scanner->update_scan_data( $image_id, [
+			$this->media_scanner->update_scan_data( $media_id, [
 				'applied' => true,
 			] );
-			
+
 			/**
 			 * Fires after applying alt text.
 			 *
 			 * @since 1.0.0
-			 * @param int    $image_id Image ID.
+			 * @param int    $media_id Media ID.
 			 * @param string $alt_text Applied alt text.
 			 */
-			do_action( 'flux_ai_alt_creator_after_apply_alt_text', $image_id, $scan_data['recommended_alt_text'] );
+			do_action( 'flux_ai_alt_creator_after_apply_alt_text', $media_id, $scan_data['recommended_alt_text'] );
 		}
 	}
 

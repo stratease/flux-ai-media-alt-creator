@@ -9,7 +9,7 @@
 namespace FluxAIMediaAltCreator\App\Http\Controllers;
 
 use FluxAIMediaAltCreator\App\Services\OpenAIService;
-use FluxAIMediaAltCreator\App\Services\ImageScanner;
+use FluxAIMediaAltCreator\App\Services\MediaScanner;
 use FluxAIMediaAltCreator\App\Services\AsyncJobService;
 use FluxAIMediaAltCreator\App\Services\Logger;
 use WP_REST_Request;
@@ -31,12 +31,12 @@ class AltTextController extends BaseController {
 	private $openai_service;
 
 	/**
-	 * Image scanner instance.
+	 * Media scanner instance.
 	 *
 	 * @since 1.0.0
-	 * @var ImageScanner
+	 * @var MediaScanner
 	 */
-	private $image_scanner;
+	private $media_scanner;
 
 	/**
 	 * Async job service instance.
@@ -51,13 +51,13 @@ class AltTextController extends BaseController {
 	 *
 	 * @since 1.0.0
 	 * @param OpenAIService  $openai_service OpenAI service instance.
-	 * @param ImageScanner   $image_scanner Image scanner instance.
+	 * @param MediaScanner   $media_scanner Media scanner instance.
 	 * @param AsyncJobService $async_job_service Async job service instance.
 	 * @param Logger         $logger Logger instance.
 	 */
-	public function __construct( OpenAIService $openai_service, ImageScanner $image_scanner, AsyncJobService $async_job_service, Logger $logger ) {
+	public function __construct( OpenAIService $openai_service, MediaScanner $media_scanner, AsyncJobService $async_job_service, Logger $logger ) {
 		$this->openai_service = $openai_service;
-		$this->image_scanner = $image_scanner;
+		$this->media_scanner = $media_scanner;
 		$this->async_job_service = $async_job_service;
 		parent::__construct( $logger );
 	}
@@ -75,7 +75,7 @@ class AltTextController extends BaseController {
 				'callback' => [ $this, 'generate_alt_text' ],
 				'permission_callback' => [ $this, 'check_permissions' ],
 				'args' => [
-					'image_ids' => [
+					'media_ids' => [
 						'required' => true,
 						'type' => 'array',
 						'items' => [
@@ -96,7 +96,7 @@ class AltTextController extends BaseController {
 				'callback' => [ $this, 'apply_alt_text' ],
 				'permission_callback' => [ $this, 'check_permissions' ],
 				'args' => [
-					'image_ids' => [
+					'media_ids' => [
 						'required' => true,
 						'type' => 'array',
 						'items' => [
@@ -113,7 +113,7 @@ class AltTextController extends BaseController {
 				'callback' => [ $this, 'batch_generate_alt_text' ],
 				'permission_callback' => [ $this, 'check_permissions' ],
 				'args' => [
-					'image_ids' => [
+					'media_ids' => [
 						'required' => true,
 						'type' => 'array',
 						'items' => [
@@ -130,7 +130,7 @@ class AltTextController extends BaseController {
 	}
 
 	/**
-	 * Generate AI alt text for selected images.
+	 * Generate AI alt text for selected media files.
 	 *
 	 * @since 1.0.0
 	 * @param WP_REST_Request $request Request object.
@@ -138,16 +138,16 @@ class AltTextController extends BaseController {
 	 */
 	public function generate_alt_text( WP_REST_Request $request ) {
 		try {
-			$image_ids = $request->get_param( 'image_ids' );
+			$media_ids = $request->get_param( 'media_ids' );
 			$async = $request->get_param( 'async' );
 
-			if ( empty( $image_ids ) || ! is_array( $image_ids ) ) {
-				return $this->create_error_response( 'Invalid image IDs', 'invalid_image_ids', 400 );
+			if ( empty( $media_ids ) || ! is_array( $media_ids ) ) {
+				return $this->create_error_response( 'Invalid media IDs', 'invalid_media_ids', 400 );
 			}
 
 			if ( $async ) {
 				// Schedule async jobs.
-				$jobs_scheduled = $this->async_job_service->schedule_alt_text_generation( $image_ids );
+				$jobs_scheduled = $this->async_job_service->schedule_alt_text_generation( $media_ids );
 				
 				return $this->create_success_response( [
 					'jobs_scheduled' => $jobs_scheduled,
@@ -157,40 +157,40 @@ class AltTextController extends BaseController {
 
 			// Process synchronously.
 			$results = [];
-			foreach ( $image_ids as $image_id ) {
-				$image_url = wp_get_attachment_image_url( $image_id, 'full' );
+			foreach ( $media_ids as $media_id ) {
+				$media_url = wp_get_attachment_url( $media_id );
 				
-				if ( ! $image_url ) {
+				if ( ! $media_url ) {
 					$results[] = [
-						'image_id' => $image_id,
+						'media_id' => $media_id,
 						'success' => false,
-						'error' => 'Could not get image URL',
+						'error' => 'Could not get media URL',
 					];
 					continue;
 				}
 
 				// Update status to processing.
-				$this->image_scanner->update_scan_data( $image_id, [
+				$this->media_scanner->update_scan_data( $media_id, [
 					'ai_status' => 'processing',
 				] );
 
 				// Generate alt text.
-				$result = $this->openai_service->generate_alt_text( $image_url, $image_id );
+				$result = $this->openai_service->generate_alt_text( $media_url, $media_id );
 
 				if ( $result['success'] ) {
-					$this->image_scanner->update_scan_data( $image_id, [
+					$this->media_scanner->update_scan_data( $media_id, [
 						'ai_status' => 'completed',
 						'recommended_alt_text' => $result['alt_text'],
 					] );
 				} else {
-					$this->image_scanner->update_scan_data( $image_id, [
+					$this->media_scanner->update_scan_data( $media_id, [
 						'ai_status' => 'error',
 						'error_message' => $result['error'] ?? 'Unknown error',
 					] );
 				}
 
 				$results[] = [
-					'image_id' => $image_id,
+					'media_id' => $media_id,
 					'success' => $result['success'],
 					'alt_text' => $result['alt_text'] ?? '',
 					'error' => $result['error'] ?? '',
@@ -212,19 +212,19 @@ class AltTextController extends BaseController {
 	 */
 	public function apply_alt_text( WP_REST_Request $request ) {
 		try {
-			$image_ids = $request->get_param( 'image_ids' );
+			$media_ids = $request->get_param( 'media_ids' );
 
-			if ( empty( $image_ids ) || ! is_array( $image_ids ) ) {
-				return $this->create_error_response( 'Invalid image IDs', 'invalid_image_ids', 400 );
+			if ( empty( $media_ids ) || ! is_array( $media_ids ) ) {
+				return $this->create_error_response( 'Invalid media IDs', 'invalid_media_ids', 400 );
 			}
 
 			$results = [];
-			foreach ( $image_ids as $image_id ) {
-				$scan_data = $this->image_scanner->get_scan_data( $image_id );
+			foreach ( $media_ids as $media_id ) {
+				$scan_data = $this->media_scanner->get_scan_data( $media_id );
 
 				if ( empty( $scan_data['recommended_alt_text'] ) ) {
 					$results[] = [
-						'image_id' => $image_id,
+						'media_id' => $media_id,
 						'success' => false,
 						'error' => 'No recommended alt text found',
 					];
@@ -232,15 +232,15 @@ class AltTextController extends BaseController {
 				}
 
 				// Apply alt text.
-				update_post_meta( $image_id, '_wp_attachment_image_alt', $scan_data['recommended_alt_text'] );
+				update_post_meta( $media_id, '_wp_attachment_image_alt', $scan_data['recommended_alt_text'] );
 
 				// Mark as applied.
-				$this->image_scanner->update_scan_data( $image_id, [
+				$this->media_scanner->update_scan_data( $media_id, [
 					'applied' => true,
 				] );
 
 				$results[] = [
-					'image_id' => $image_id,
+					'media_id' => $media_id,
 					'success' => true,
 					'alt_text' => $scan_data['recommended_alt_text'],
 				];
@@ -261,14 +261,14 @@ class AltTextController extends BaseController {
 	 */
 	public function batch_generate_alt_text( WP_REST_Request $request ) {
 		try {
-			$image_ids = $request->get_param( 'image_ids' );
+			$media_ids = $request->get_param( 'media_ids' );
 			$batch_size = $request->get_param( 'batch_size' );
 
-			if ( empty( $image_ids ) || ! is_array( $image_ids ) ) {
-				return $this->create_error_response( 'Invalid image IDs', 'invalid_image_ids', 400 );
+			if ( empty( $media_ids ) || ! is_array( $media_ids ) ) {
+				return $this->create_error_response( 'Invalid media IDs', 'invalid_media_ids', 400 );
 			}
 
-			$jobs_scheduled = $this->async_job_service->schedule_alt_text_generation( $image_ids, $batch_size );
+			$jobs_scheduled = $this->async_job_service->schedule_alt_text_generation( $media_ids, $batch_size );
 
 			return $this->create_success_response( [
 				'jobs_scheduled' => $jobs_scheduled,
