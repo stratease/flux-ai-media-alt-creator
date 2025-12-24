@@ -89,6 +89,7 @@
             },
             "exclude_from_prefix": {
                 "packages": [
+                    "woocommerce/action-scheduler"
                 ],
                 "namespaces": [
                 ],

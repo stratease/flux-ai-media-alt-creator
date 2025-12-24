@@ -3,8 +3,7 @@
  * Action Scheduler service for Flux AI Media Alt Creator.
  *
  * Manages Action Scheduler initialization and provides methods for scheduling
- * async alt text generation actions. Uses Strauss-prefixed Action Scheduler to avoid
- * namespace collisions.
+ * async alt text generation actions.
  *
  * @package FluxAIMediaAltCreator
  * @since 1.0.0
@@ -50,9 +49,8 @@ class ActionSchedulerService {
 	/**
 	 * Initialize Action Scheduler.
 	 *
-	 * Loads the Strauss-prefixed Action Scheduler library and ensures
-	 * Action Scheduler is ready to use. Action Scheduler functions are global,
-	 * so we just need to ensure the library is loaded.
+	 * Loads the Action Scheduler library and ensures Action Scheduler is ready to use.
+	 * Action Scheduler functions are global, so we just need to ensure the library is loaded.
 	 *
 	 * @since 1.0.0
 	 * @return void
@@ -65,22 +63,15 @@ class ActionSchedulerService {
 			return;
 		}
 
-		// Load Action Scheduler from vendor-prefixed directory.
-		// Action Scheduler will be prefixed by Strauss but functions remain global.
-		$action_scheduler_file = FLUX_AI_MEDIA_ALT_CREATOR_PLUGIN_DIR . 'vendor-prefixed/woocommerce/action-scheduler/action-scheduler.php';
+		// Load Action Scheduler from vendor directory.
+		$action_scheduler_file = FLUX_AI_MEDIA_ALT_CREATOR_PLUGIN_DIR . 'vendor/woocommerce/action-scheduler/action-scheduler.php';
 		
-		if ( file_exists( $action_scheduler_file ) ) {
-			require_once $action_scheduler_file;
-		} else {
-			// Fallback: try vendor directory (if not yet prefixed).
-			$action_scheduler_file_fallback = FLUX_AI_MEDIA_ALT_CREATOR_PLUGIN_DIR . 'vendor/woocommerce/action-scheduler/action-scheduler.php';
-			if ( file_exists( $action_scheduler_file_fallback ) ) {
-				require_once $action_scheduler_file_fallback;
-			} else {
-				$this->logger->error( 'Action Scheduler library not found. Please run "composer install" and then "composer run prefix-namespaces" to install and prefix Action Scheduler.' );
-				return;
-			}
+		if ( ! file_exists( $action_scheduler_file ) ) {
+			$this->logger->error( 'Action Scheduler library not found. Please run "composer install" to install Action Scheduler.' );
+			return;
 		}
+
+		require_once $action_scheduler_file;
 
 		// Verify Action Scheduler functions are available.
 		if ( ! function_exists( 'as_schedule_single_action' ) ) {
