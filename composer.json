@@ -10,8 +10,15 @@
             "homepage": "https://fluxplugins.com"
         }
     ],
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "git@github.com:stratease/flux-plugins-common.git"
+        }
+    ],
     "require": {
         "php": ">=8.0",
+        "stratease/flux-plugins-common": "@dev",
         "woocommerce/action-scheduler": "^3.7"
     },
     "require-dev": {
@@ -75,6 +82,7 @@
             "classmap_prefix": "FluxAIMediaAltCreator_",
             "constant_prefix": "FluxAIMediaAltCreator_",
             "packages": [
+                "stratease/flux-plugins-common"
             ],
             "update_call_sites": false,
             "override_autoload": {

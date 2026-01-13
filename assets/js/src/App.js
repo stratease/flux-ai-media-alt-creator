@@ -1,15 +1,13 @@
 import React from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ThemeProvider } from '@mui/material/styles';
-import { Global, css } from '@emotion/react';
-import { Box, Typography, Container, Tabs, Tab, Paper, Grid } from '@mui/material';
+import { Box, Tabs, Tab } from '@mui/material';
 import { __ } from '@wordpress/i18n';
-import { ErrorBoundary, FluxAIMediaAltIcon } from '@flux-ai-media-alt-creator/components';
+import { ErrorBoundary } from '@flux-ai-media-alt-creator/components';
+import { FluxAppProvider, PageLayout } from '@flux-plugins-common/components';
 import OverviewPage from '@flux-ai-media-alt-creator/pages/OverviewPage';
 import MediaPage from '@flux-ai-media-alt-creator/pages/MediaPage';
 import SettingsPage from '@flux-ai-media-alt-creator/pages/SettingsPage';
-import theme from '@flux-ai-media-alt-creator/theme';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -48,14 +46,6 @@ const Navigation = () => {
 
   return (
     <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-      <Grid container alignItems="center" sx={{ mb: 2 }}>
-        <Grid item sx={{ display: 'flex', alignItems: 'center' }}>
-          <FluxAIMediaAltIcon size={40} sx={{ mr: 2 }} />
-          <Typography variant="h4" component="h1" sx={{ m: 0, lineHeight: 1 }}>
-            {__('Flux AI Media Alt Creator', 'flux-ai-media-alt-creator')}
-          </Typography>
-        </Grid>
-      </Grid>
       <Tabs
         value={getTabValue(location.pathname)}
         onChange={handleTabChange}
@@ -92,35 +82,19 @@ const App = () => {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider theme={theme}>
-          <Global
-            styles={css`
-              .MuiCheckbox-root input[type="checkbox"] {
-                opacity: 0 !important;
-                position: absolute !important;
-                width: 100% !important;
-                height: 100% !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                cursor: pointer !important;
-                z-index: 1 !important;
-              }
-            `}
-          />
+        <FluxAppProvider>
           <Router>
-            <Container maxWidth="xl" sx={{ py: 4 }}>
-              <Paper elevation={1} sx={{ p: 3 }}>
-                <Navigation />
-                <Routes>
-                  <Route path="/overview" element={<OverviewPage />} />
-                  <Route path="/media" element={<MediaPage />} />
-                  <Route path="/settings" element={<SettingsPage />} />
-                  <Route path="/" element={<Navigate to="/overview" replace />} />
-                </Routes>
-              </Paper>
-            </Container>
+            <PageLayout title={__('Flux AI Media Alt Creator', 'flux-ai-media-alt-creator')} maxWidth="xl">
+              <Navigation />
+              <Routes>
+                <Route path="/overview" element={<OverviewPage />} />
+                <Route path="/media" element={<MediaPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/" element={<Navigate to="/overview" replace />} />
+              </Routes>
+            </PageLayout>
           </Router>
-        </ThemeProvider>
+        </FluxAppProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   );

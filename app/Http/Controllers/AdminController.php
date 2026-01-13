@@ -1,21 +1,22 @@
 <?php
 /**
- * Admin provider for registering admin menu and UI hooks.
+ * Admin controller for Flux AI Media Alt Creator plugin.
  *
  * @package FluxAIMediaAltCreator
  * @since 1.0.0
  */
 
-namespace FluxAIMediaAltCreator\App\Providers;
+namespace FluxAIMediaAltCreator\App\Http\Controllers;
 
 use FluxAIMediaAltCreator\App\Services\Settings;
+use FluxAIMediaAltCreator\FluxPlugins\Common\Services\MenuService;
 
 /**
- * Provider for admin functionality.
+ * Handles WordPress admin page registration and management.
  *
  * @since 1.0.0
  */
-class AdminProvider {
+class AdminController {
 
 	/**
 	 * Settings instance.
@@ -36,13 +37,18 @@ class AdminProvider {
 	}
 
 	/**
-	 * Initialize the provider.
+	 * Initialize admin functionality.
 	 *
 	 * @since 1.0.0
-	 * @return void
 	 */
 	public function init() {
-		add_action( 'admin_menu', [ $this, 'add_admin_menu' ] );
+		// Register menu during init (before menu.php loads) to ensure page is registered before WordPress checks access.
+		// menu.php is loaded at line 163 of admin.php, which is BEFORE admin_init fires at line 180.
+		// We must register the page before menu.php loads, so we use init hook with is_admin() check.
+		// Use priority 1 to ensure AI Media Alt Creator is registered very early.
+		if ( is_admin() ) {
+			add_action( 'init', [ $this, 'register_menu' ], 1 );
+		}
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_scripts' ] );
 		add_action( 'admin_notices', [ $this, 'show_api_key_notice' ] );
 	}
@@ -56,14 +62,14 @@ class AdminProvider {
 	public function show_api_key_notice() {
 		// Only show on our admin page.
 		$screen = get_current_screen();
-		if ( ! $screen || 'media_page_flux-ai-media-alt-creator' !== $screen->id ) {
+		if ( ! $screen || 'flux-suite_page_flux-ai-media-alt-creator' !== $screen->id ) {
 			return;
 		}
 
 		$api_key = Settings::get_openai_api_key();
 		
 		if ( empty( $api_key ) ) {
-			$settings_url = admin_url( 'upload.php?page=flux-ai-media-alt-creator#/settings' );
+			$settings_url = admin_url( 'admin.php?page=flux-ai-media-alt-creator#/settings' );
 			?>
 			<div class="notice notice-error">
 				<p>
@@ -82,20 +88,27 @@ class AdminProvider {
 	}
 
 	/**
-	 * Add admin submenu under Media menu.
+	 * Register admin menu pages.
+	 *
+	 * Called during init (before menu.php loads) to ensure page is registered before WordPress checks access.
 	 *
 	 * @since 1.0.0
 	 * @return void
 	 */
-	public function add_admin_menu() {
-		add_submenu_page(
-			'upload.php', // Parent: Media
-			__( 'AI Media Alt Creator', 'flux-ai-media-alt-creator' ),
-			__( 'AI Media Alt Creator', 'flux-ai-media-alt-creator' ),
-			'manage_options',
+	public function register_menu() {
+		// Register plugin-specific submenu page using MenuService.
+		// Placement 1 makes this the primary menu item (first submenu under "Flux Suite").
+		$menu_service = MenuService::get_instance();
+		$menu_service->register_submenu_page(
 			'flux-ai-media-alt-creator',
-			[ $this, 'render_main_page' ]
+			__( 'AI Media Alt Creator', 'flux-ai-media-alt-creator' ),
+			[ $this, 'render_main_page' ],
+			'manage_options',
+			1 // Placement: 1 = first submenu item under "Flux Suite".
 		);
+
+		// Note: Plugin registration in Flux Suite overview is now handled centrally
+		// in MenuService::init_plugin_registry() for marketing purposes only.
 	}
 
 	/**
@@ -103,11 +116,10 @@ class AdminProvider {
 	 *
 	 * @since 1.0.0
 	 * @param string $hook Current admin page hook.
-	 * @return void
 	 */
 	public function enqueue_admin_scripts( $hook ) {
-		// Only load on our admin page.
-		if ( 'media_page_flux-ai-media-alt-creator' !== $hook ) {
+		// Only load on our admin pages.
+		if ( strpos( $hook, 'flux-ai-media-alt-creator' ) === false ) {
 			return;
 		}
 
@@ -155,13 +167,12 @@ class AdminProvider {
 	 * Render the main admin page.
 	 *
 	 * @since 1.0.0
-	 * @return void
 	 */
 	public function render_main_page() {
 		$is_debug = defined( 'WP_DEBUG' ) && WP_DEBUG && defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG;
 		?>
 		<div class="wrap">
-			<div id="flux-ai-media-alt-creator-app" style="display: none;">
+			<div id="flux-ai-media-alt-creator-app">
 			<?php if ( $is_debug ) : ?>
 				<div class="notice notice-warning" style="margin: 20px 0; padding: 15px;">
 					<p><strong><?php esc_html_e( 'Development Mode Active', 'flux-ai-media-alt-creator' ); ?></strong></p>
@@ -179,24 +190,6 @@ class AdminProvider {
 			<?php endif; ?>
 			</div>
 		</div>
-		<script>
-		// Show the React app container once the page is fully loaded to prevent other plugins from injecting into it.
-		(function() {
-			if (document.readyState === 'loading') {
-				document.addEventListener('DOMContentLoaded', function() {
-					var container = document.getElementById('flux-ai-media-alt-creator-app');
-					if (container) {
-						container.style.display = '';
-					}
-				});
-			} else {
-				var container = document.getElementById('flux-ai-media-alt-creator-app');
-				if (container) {
-					container.style.display = '';
-				}
-			}
-		})();
-		</script>
 		<?php
 	}
 

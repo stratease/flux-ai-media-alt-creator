@@ -15,8 +15,9 @@ use FluxAIMediaAltCreator\App\Services\OpenAIService;
 use FluxAIMediaAltCreator\App\Services\UsageTracker;
 use FluxAIMediaAltCreator\App\Services\AsyncJobService;
 use FluxAIMediaAltCreator\App\Services\ActionSchedulerService;
+use FluxAIMediaAltCreator\FluxPlugins\Common\Services\MenuService;
 
-use FluxAIMediaAltCreator\App\Providers\AdminProvider;
+use FluxAIMediaAltCreator\App\Http\Controllers\AdminController;
 use FluxAIMediaAltCreator\App\Providers\ApiProvider;
 use FluxAIMediaAltCreator\App\Providers\MediaScanProvider;
 use FluxAIMediaAltCreator\App\Providers\AltTextProvider;
@@ -92,6 +93,12 @@ class Plugin {
 	 * @return void
 	 */
 	public function init() {
+		// Setup menu pages (register during init to ensure pages are registered before menu.php loads).
+		// Translations are available during init, so __() works fine here.
+		if ( is_admin() ) {
+			add_action( 'init', [ $this, 'register_menu_pages' ], 10 );
+		}
+		
 		// Initialize logger first.
 		$this->logger = new Logger();
 		
@@ -127,14 +134,30 @@ class Plugin {
 	}
 
 	/**
+	 * Register menu pages.
+	 *
+	 * Called during init (before menu.php loads) to ensure pages are registered before WordPress checks access.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	public function register_menu_pages() {
+		$menu_service = MenuService::get_instance();
+		
+		// Register Logs page if this plugin needs it.
+		// The common library provides the page, but individual plugins decide if they want to register it.
+		$menu_service->register_logs_page();
+	}
+
+	/**
 	 * Initialize all providers.
 	 *
 	 * @since 1.0.0
 	 * @return void
 	 */
 	private function init_providers() {
-		// Admin provider - handles admin menu and UI.
-		$this->providers['admin'] = new AdminProvider( $this->settings );
+		// Admin controller - handles admin menu and UI.
+		$this->providers['admin'] = new AdminController( $this->settings );
 		
 		// API provider - handles REST API routes.
 		$this->providers['api'] = new ApiProvider(

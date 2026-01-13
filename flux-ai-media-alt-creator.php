@@ -20,6 +20,8 @@
  * @since 1.0.0
  */
 
+use FluxAIMediaAltCreator\FluxPlugins\Common\FluxPlugins;
+
 // Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -144,6 +146,10 @@ add_action( 'init', 'flux_ai_media_alt_creator_load_translations' );
  * @since 1.0.0
  */
 function flux_ai_media_alt_creator_init() {
+	// Initialize Flux Plugins common library.
+	// This handles account ID, menu setup, REST API routes, and required pages.
+	FluxPlugins::init( FLUX_AI_MEDIA_ALT_CREATOR_PLUGIN_SLUG, FLUX_AI_MEDIA_ALT_CREATOR_VERSION, 'flux-ai-media-alt-creator' );
+	
 	// Initialize the main plugin class.
 	$flux_ai_media_alt_creator = new FluxAIMediaAltCreator\App\Plugin();
 	$flux_ai_media_alt_creator->init();

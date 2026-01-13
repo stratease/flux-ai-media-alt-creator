@@ -10,7 +10,7 @@ namespace FluxAIMediaAltCreator\App\Http\Controllers;
 
 use FluxAIMediaAltCreator\App\Services\Settings;
 use FluxAIMediaAltCreator\App\Services\Logger;
-use FluxAIMediaAltCreator\App\Providers\AdminProvider;
+use FluxAIMediaAltCreator\App\Http\Controllers\AdminController;
 use WP_REST_Request;
 use WP_REST_Response;
 
@@ -146,7 +146,7 @@ class OptionsController extends BaseController {
 		try {
 			$field_name = $request->get_param( 'field_name' );
 			
-			$should_show = AdminProvider::should_show_field( $field_name );
+			$should_show = AdminController::should_show_field( $field_name );
 			
 			return $this->create_success_response( [
 				'field_name' => $field_name,
