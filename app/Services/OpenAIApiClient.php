@@ -111,7 +111,7 @@ class OpenAIApiClient {
 	 * @return string Content type ('image' or 'video').
 	 */
 	private function detect_content_type( $media_url ) {
-		$extension = strtolower( pathinfo( parse_url( $media_url, PHP_URL_PATH ), PATHINFO_EXTENSION ) );
+		$extension = strtolower( pathinfo( wp_parse_url( $media_url, PHP_URL_PATH ), PATHINFO_EXTENSION ) );
 
 		$image_extensions = [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'bmp', 'tiff', 'ico' ];
 		$video_extensions = [ 'mp4', 'webm', 'ogg', 'mov', 'avi', 'wmv', 'flv', 'mkv' ];

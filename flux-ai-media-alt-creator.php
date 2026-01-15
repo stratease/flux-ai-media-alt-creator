@@ -126,19 +126,7 @@ add_action( 'plugins_loaded', 'flux_ai_media_alt_creator_init' );
 // Handle activation redirect.
 add_action( 'admin_init', 'flux_ai_media_alt_creator_activation_redirect' );
 
-/**
- * Load plugin translations.
- *
- * @since 1.0.0
- */
-function flux_ai_media_alt_creator_load_translations() {
-	load_plugin_textdomain(
-		'flux-ai-media-alt-creator',
-		false,
-		dirname( plugin_basename( FLUX_AI_MEDIA_ALT_CREATOR_PLUGIN_FILE ) ) . '/languages/'
-	);
-}
-add_action( 'init', 'flux_ai_media_alt_creator_load_translations' );
+// Translations are automatically loaded by WordPress.org for hosted plugins (WordPress 4.6+).
 
 /**
  * Initialize the Flux AI Media Alt Creator plugin.
@@ -220,7 +208,7 @@ function flux_ai_media_alt_creator_activation_redirect() {
 		}
 		
 		// Redirect to plugin's own admin page (not external site).
-		wp_safe_redirect( admin_url( 'upload.php?page=flux-ai-media-alt-creator' ) );
+		wp_safe_redirect( admin_url( 'admin.php?page=flux-ai-media-alt-creator' ) );
 		exit;
 	}
 }

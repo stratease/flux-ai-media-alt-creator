@@ -148,6 +148,7 @@ class AdminController {
 			'adminUrl' => admin_url(),
 			'pluginUrl' => FLUX_AI_MEDIA_ALT_CREATOR_PLUGIN_URL,
 			'tabs' => $registered_tabs,
+			'isProActive' => defined( 'FLUX_AI_MEDIA_ALT_CREATOR_PRO_VERSION' ),
 		] );
 
 		// Enqueue WordPress admin styles.
@@ -212,7 +213,7 @@ class AdminController {
 		if ( ! defined( 'FLUX_AI_MEDIA_ALT_CREATOR_PRO_VERSION' ) ) {
 			$upgrade_link = sprintf(
 				'<a href="%s" target="_blank" rel="noopener noreferrer" style="color: #2271b1; font-weight: 600;">%s</a>',
-				esc_url( 'https://fluxplugins.com/pro-ai-media-alt-text-generator/' ),
+				esc_url( 'https://fluxplugins.com/ai-media-alt-text-creator-pro/' ),
 				esc_html__( 'Upgrade to Pro', 'flux-ai-media-alt-creator' )
 			);
 			
