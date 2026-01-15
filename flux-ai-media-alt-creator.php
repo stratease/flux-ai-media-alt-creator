@@ -10,7 +10,7 @@
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: flux-ai-media-alt-creator
  * Domain Path: /languages
- * Requires at least: 6.0
+ * Requires at least: 5.8
  * Tested up to: 6.8
  * Requires PHP: 8.0
  *
@@ -45,7 +45,7 @@ if ( version_compare( PHP_VERSION, '8.0', '<' ) ) {
 // Check WordPress version compatibility.
 // @since 1.0.0
 global $wp_version;
-if ( version_compare( $wp_version, '6.0', '<' ) ) {
+if ( version_compare( $wp_version, '5.8', '<' ) ) {
 	add_action( 'admin_notices', 'flux_ai_media_alt_creator_wp_version_notice' );
 	return;
 }
@@ -87,7 +87,7 @@ function flux_ai_media_alt_creator_wp_version_notice() {
 				/* translators: 1: Current WordPress version, 2: Required WordPress version */
 				esc_html__( 'Flux AI Media Alt Creator requires WordPress %2$s or higher. You are running WordPress %1$s.', 'flux-ai-media-alt-creator' ),
 				esc_html( $wp_version ),
-				'6.0'
+				'5.8'
 			);
 			?>
 		</p>
@@ -238,7 +238,7 @@ register_uninstall_hook( __FILE__, 'flux_ai_media_alt_creator_uninstall' );
 function flux_ai_media_alt_creator_activate() {
 	// Check requirements before activation.
 	global $wp_version;
-	if ( version_compare( PHP_VERSION, '8.0', '<' ) || version_compare( $wp_version, '6.0', '<' ) ) {
+	if ( version_compare( PHP_VERSION, '8.0', '<' ) || version_compare( $wp_version, '5.8', '<' ) ) {
 		return;
 	}
 
@@ -289,7 +289,10 @@ function flux_ai_media_alt_creator_uninstall() {
 
 	// Remove post meta for all attachments.
 	$wpdb->query(
-		"DELETE FROM {$wpdb->postmeta} WHERE meta_key LIKE '_flux_ai_alt_creator_%'"
+		$wpdb->prepare(
+			"DELETE FROM {$wpdb->postmeta} WHERE meta_key LIKE %s",
+			$wpdb->esc_like( '_flux_ai_alt_creator_' ) . '%'
+		)
 	);
 
 	// Clear any scheduled WP Cron jobs.
@@ -297,7 +300,11 @@ function flux_ai_media_alt_creator_uninstall() {
 
 	// Remove any transients.
 	$wpdb->query(
-		"DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_flux_ai_media_alt_creator_%' OR option_name LIKE '_transient_timeout_flux_ai_media_alt_creator_%'"
+		$wpdb->prepare(
+			"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
+			$wpdb->esc_like( '_transient_flux_ai_media_alt_creator_' ) . '%',
+			$wpdb->esc_like( '_transient_timeout_flux_ai_media_alt_creator_' ) . '%'
+		)
 	);
 }
 

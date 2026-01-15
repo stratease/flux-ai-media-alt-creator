@@ -26,22 +26,36 @@ const Navigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Get registered tabs from localized data.
+  const registeredTabs = window.fluxAIMediaAltCreatorAdmin?.tabs || [];
+  
+  // Define default tabs.
+  const defaultTabs = [
+    { slug: 'overview', label: __('Overview', 'flux-ai-media-alt-creator'), path: '/overview' },
+    { slug: 'media', label: __('Media', 'flux-ai-media-alt-creator'), path: '/media' },
+    { slug: 'settings', label: __('Settings', 'flux-ai-media-alt-creator'), path: '/settings' },
+  ];
+
+  // Merge registered tabs (convert to format with path).
+  const allTabs = [
+    ...defaultTabs,
+    ...registeredTabs.map(tab => ({
+      slug: tab.slug,
+      label: tab.label,
+      path: `/${tab.slug}`,
+      component: tab.component,
+    })),
+  ];
+
   const getTabValue = (pathname) => {
-    switch (pathname) {
-      case '/overview':
-        return 0;
-      case '/media':
-        return 1;
-      case '/settings':
-        return 2;
-      default:
-        return 0;
-    }
+    const index = allTabs.findIndex(tab => tab.path === pathname);
+    return index >= 0 ? index : 0;
   };
 
   const handleTabChange = (event, newValue) => {
-    const paths = ['/overview', '/media', '/settings'];
-    navigate(paths[newValue]);
+    if (allTabs[newValue]) {
+      navigate(allTabs[newValue].path);
+    }
   };
 
   return (
@@ -53,9 +67,9 @@ const Navigation = () => {
         textColor="primary"
         indicatorColor="primary"
       >
-        <Tab label={__('Overview', 'flux-ai-media-alt-creator')} />
-        <Tab label={__('Media', 'flux-ai-media-alt-creator')} />
-        <Tab label={__('Settings', 'flux-ai-media-alt-creator')} />
+        {allTabs.map((tab) => (
+          <Tab key={tab.slug} label={tab.label} />
+        ))}
       </Tabs>
     </Box>
   );
@@ -79,6 +93,25 @@ const App = () => {
     }
   }, []);
 
+  // Get registered tabs from localized data.
+  const registeredTabs = window.fluxAIMediaAltCreatorAdmin?.tabs || [];
+
+  // Render registered tab component (if available).
+  const renderRegisteredTab = (tab) => {
+    if (!tab.component) {
+      return null;
+    }
+
+    // Check if component is available globally (registered by Pro plugin).
+    const Component = window[tab.component] || window.fluxAIMediaAltCreatorProComponents?.[tab.component];
+    
+    if (!Component) {
+      return <div>{__('Component not found', 'flux-ai-media-alt-creator')}</div>;
+    }
+
+    return React.createElement(Component);
+  };
+
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
@@ -90,6 +123,13 @@ const App = () => {
                 <Route path="/overview" element={<OverviewPage />} />
                 <Route path="/media" element={<MediaPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
+                {registeredTabs.map((tab) => (
+                  <Route
+                    key={tab.slug}
+                    path={`/${tab.slug}`}
+                    element={renderRegisteredTab(tab)}
+                  />
+                ))}
                 <Route path="/" element={<Navigate to="/overview" replace />} />
               </Routes>
             </PageLayout>

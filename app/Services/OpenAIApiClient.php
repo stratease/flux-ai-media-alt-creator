@@ -90,7 +90,7 @@ class OpenAIApiClient {
 		 * @param string $prompt Prompt text.
 		 * @return array Filtered request body.
 		 */
-		$body = apply_filters( 'flux_ai_alt_creator_openai_request_body', $body, $media_url, $prompt );
+		$body = apply_filters( 'flux_ai_alt_creator/openai_api_client/generate_vision_content/request_body', $body, $media_url, $prompt );
 
 		// Make API request.
 		$response = $this->make_request( $endpoint, $body );
@@ -173,7 +173,7 @@ class OpenAIApiClient {
 		 * @param string $content_type Content type.
 		 * @return array Filtered content array.
 		 */
-		return apply_filters( 'flux_ai_alt_creator_openai_content_array', $content, $media_url, $content_type );
+		return apply_filters( 'flux_ai_alt_creator/openai_api_client/build_content_array', $content, $media_url, $content_type );
 	}
 
 	/**
@@ -212,7 +212,7 @@ class OpenAIApiClient {
 		 * @param string $endpoint API endpoint.
 		 * @return array Filtered request arguments.
 		 */
-		$args = apply_filters( 'flux_ai_alt_creator_openai_request_args', $args, $endpoint );
+		$args = apply_filters( 'flux_ai_alt_creator/openai_api_client/make_request/request_args', $args, $endpoint );
 
 		$response = wp_remote_post( $endpoint, $args );
 

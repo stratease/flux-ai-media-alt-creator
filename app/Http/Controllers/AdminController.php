@@ -51,6 +51,9 @@ class AdminController {
 		}
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_scripts' ] );
 		add_action( 'admin_notices', [ $this, 'show_api_key_notice' ] );
+		
+		// Add "Upgrade to Pro" link to plugin action links.
+		add_filter( 'plugin_action_links_' . FLUX_AI_MEDIA_ALT_CREATOR_PLUGIN_BASENAME, [ $this, 'add_plugin_action_links' ] );
 	}
 
 	/**
@@ -135,12 +138,16 @@ class AdminController {
 			true
 		);
 
+		// Get registered tabs via filter.
+		$registered_tabs = apply_filters( 'flux_ai_alt_creator/admin_controller/get_tabs', [] );
+
 		// Localize script with WordPress data.
 		wp_localize_script( 'flux-ai-media-alt-creator-admin', 'fluxAIMediaAltCreatorAdmin', [
 			'apiUrl' => rest_url( 'flux-ai-media-alt-creator/v1/' ),
 			'nonce' => wp_create_nonce( 'wp_rest' ),
 			'adminUrl' => admin_url(),
 			'pluginUrl' => FLUX_AI_MEDIA_ALT_CREATOR_PLUGIN_URL,
+			'tabs' => $registered_tabs,
 		] );
 
 		// Enqueue WordPress admin styles.
@@ -194,6 +201,29 @@ class AdminController {
 	}
 
 	/**
+	 * Add action links to plugin row in plugins page.
+	 *
+	 * @since 1.0.0
+	 * @param array $links Existing action links.
+	 * @return array Modified action links.
+	 */
+	public function add_plugin_action_links( $links ) {
+		// Only show "Upgrade to Pro" if Pro plugin is not active.
+		if ( ! defined( 'FLUX_AI_MEDIA_ALT_CREATOR_PRO_VERSION' ) ) {
+			$upgrade_link = sprintf(
+				'<a href="%s" target="_blank" rel="noopener noreferrer" style="color: #2271b1; font-weight: 600;">%s</a>',
+				esc_url( 'https://fluxplugins.com/pro-ai-media-alt-text-generator/' ),
+				esc_html__( 'Upgrade to Pro', 'flux-ai-media-alt-creator' )
+			);
+			
+			// Add upgrade link at the beginning.
+			array_unshift( $links, $upgrade_link );
+		}
+		
+		return $links;
+	}
+
+	/**
 	 * Check if a field should be shown.
 	 *
 	 * @since 1.0.0
@@ -208,7 +238,7 @@ class AdminController {
 		 * @param bool   $show Whether to show the field.
 		 * @param string $field_name Field name.
 		 */
-		return apply_filters( 'flux_ai_alt_creator_should_show_field', true, $field_name );
+		return apply_filters( 'flux_ai_alt_creator/admin_controller/should_show_field', true, $field_name );
 	}
 }
 

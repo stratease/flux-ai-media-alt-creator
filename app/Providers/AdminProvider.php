@@ -215,7 +215,7 @@ class AdminProvider {
 		 * @param bool   $show Whether to show the field.
 		 * @param string $field_name Field name.
 		 */
-		return apply_filters( 'flux_ai_alt_creator_should_show_field', true, $field_name );
+		return apply_filters( 'flux_ai_alt_creator/admin_provider/should_show_field', true, $field_name );
 	}
 }
 

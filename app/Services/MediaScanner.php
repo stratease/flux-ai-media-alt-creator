@@ -53,7 +53,7 @@ class MediaScanner {
 		 * @param string $search Search term.
 		 * @param array  $additional_params Additional search parameters.
 		 */
-		do_action( 'flux_ai_alt_creator_before_scan', $page, $per_page, $search, $additional_params );
+		do_action( 'flux_ai_alt_creator/media_scanner/scan/before', $page, $per_page, $search, $additional_params );
 
 		// Get default MIME types through hook (images only by default).
 		/**
@@ -68,7 +68,7 @@ class MediaScanner {
 		 * @param array $additional_params Additional search parameters from request.
 		 * @return array Array of default MIME types.
 		 */
-		$default_mime_types = apply_filters( 'flux_ai_alt_creator_default_mime_types', [], $additional_params );
+		$default_mime_types = apply_filters( 'flux_ai_alt_creator/media_scanner/get_default_mime_types', [], $additional_params );
 
 		// If no default MIME types are provided via hook, use image types as fallback.
 		if ( empty( $default_mime_types ) ) {
@@ -86,7 +86,7 @@ class MediaScanner {
 		 * @param array  $additional_params Additional search parameters from request.
 		 * @return array Filtered array of MIME types.
 		 */
-		$mime_types = apply_filters( 'flux_ai_alt_creator_search_mime_types', $default_mime_types, $additional_params );
+		$mime_types = apply_filters( 'flux_ai_alt_creator/media_scanner/scan/search_mime_types', $default_mime_types, $additional_params );
 
 		// Handle media type groups from filters (e.g., ['images', 'videos']).
 		if ( ! empty( $additional_params['media_types'] ) && is_array( $additional_params['media_types'] ) ) {
@@ -101,7 +101,7 @@ class MediaScanner {
 			 * @return array Array of MIME types for the group.
 			 */
 			foreach ( $additional_params['media_types'] as $media_type ) {
-				$group_mime_types = apply_filters( 'flux_ai_alt_creator_media_type_mime_types', [], $media_type );
+				$group_mime_types = apply_filters( 'flux_ai_alt_creator/media_scanner/scan/media_type_mime_types', [], $media_type );
 				
 				// If no MIME types from hook, try to get from media type groups.
 				if ( empty( $group_mime_types ) ) {
@@ -164,7 +164,7 @@ class MediaScanner {
 		 * @param string $search Search term.
 		 * @return array Additional query arguments to merge into main query.
 		 */
-		$additional_query_args = apply_filters( 'flux_ai_alt_creator_additional_query_args', [], $additional_params, $page, $per_page, $search );
+		$additional_query_args = apply_filters( 'flux_ai_alt_creator/media_scanner/scan/additional_query_args', [], $additional_params, $page, $per_page, $search );
 
 		// Merge additional query arguments.
 		if ( ! empty( $additional_query_args ) && is_array( $additional_query_args ) ) {
@@ -193,7 +193,7 @@ class MediaScanner {
 		 * @param array  $additional_params Additional search parameters from request.
 		 * @return array Filtered WP_Query arguments.
 		 */
-		$query_args = apply_filters( 'flux_ai_alt_creator_scan_query_args', $query_args, $page, $per_page, $search, $additional_params );
+		$query_args = apply_filters( 'flux_ai_alt_creator/media_scanner/scan/query_args', $query_args, $page, $per_page, $search, $additional_params );
 
 		$query = new \WP_Query( $query_args );
 
@@ -210,7 +210,7 @@ class MediaScanner {
 				 * @param array $media_data Media data array.
 				 * @param int   $post_id Post ID.
 				 */
-				$media_data = apply_filters( 'flux_ai_alt_creator_media_data', $media_data, $post->ID );
+				$media_data = apply_filters( 'flux_ai_alt_creator/media_scanner/scan/media_data', $media_data, $post->ID );
 				
 				$media_files[] = $media_data;
 			}
@@ -227,7 +227,7 @@ class MediaScanner {
 		 * @param int   $total Total count.
 		 * @param array $query_args Query arguments used.
 		 */
-		do_action( 'flux_ai_alt_creator_after_scan', $media_files, $total, $query_args );
+		do_action( 'flux_ai_alt_creator/media_scanner/scan/after', $media_files, $total, $query_args );
 
 		return [
 			'data' => $media_files,
@@ -320,7 +320,7 @@ class MediaScanner {
 	 * Get default image MIME types.
 	 *
 	 * This method provides image MIME types as a fallback when no default
-	 * MIME types are provided via the flux_ai_alt_creator_default_mime_types hook.
+	 * MIME types are provided via the flux_ai_alt_creator/media_scanner/get_default_mime_types hook.
 	 *
 	 * @since 1.0.0
 	 * @return array Array of image MIME types.
@@ -344,7 +344,7 @@ class MediaScanner {
 	 * Get available media type groups.
 	 *
 	 * Returns a list of media type groups that can be used for filtering.
-	 * Other plugins can extend this via the flux_ai_alt_creator_media_type_groups hook.
+	 * Other plugins can extend this via the flux_ai_alt_creator/media_scanner/get_media_type_groups hook.
 	 *
 	 * @since 1.0.0
 	 * @return array Array of media type groups with labels.
@@ -364,7 +364,7 @@ class MediaScanner {
 		 * @param array $groups Array of media type groups.
 		 * @return array Filtered array of media type groups.
 		 */
-		return apply_filters( 'flux_ai_alt_creator_media_type_groups', $default_groups );
+		return apply_filters( 'flux_ai_alt_creator/media_scanner/get_media_type_groups', $default_groups );
 	}
 }
 

@@ -12,6 +12,7 @@ use FluxAIMediaAltCreator\App\Services\Logger;
 use FluxAIMediaAltCreator\App\Services\Settings;
 use FluxAIMediaAltCreator\App\Services\MediaScanner;
 use FluxAIMediaAltCreator\App\Services\OpenAIService;
+use FluxAIMediaAltCreator\App\Services\AltTextApiService;
 use FluxAIMediaAltCreator\App\Services\UsageTracker;
 use FluxAIMediaAltCreator\App\Services\AsyncJobService;
 use FluxAIMediaAltCreator\App\Services\ActionSchedulerService;
@@ -63,6 +64,14 @@ class Plugin {
 	private $openai_service;
 
 	/**
+	 * Alt text API service instance (abstracted).
+	 *
+	 * @since 1.0.0
+	 * @var AltTextApiService
+	 */
+	private $alt_text_api_service;
+
+	/**
 	 * Usage tracker instance.
 	 *
 	 * @since 1.0.0
@@ -111,14 +120,17 @@ class Plugin {
 		// Initialize OpenAI service.
 		$this->openai_service = new OpenAIService( $this->logger, $this->usage_tracker );
 		
+		// Initialize abstracted alt text API service.
+		$this->alt_text_api_service = new AltTextApiService( $this->logger, $this->openai_service, $this->usage_tracker );
+		
 		// Initialize media scanner.
 		$this->media_scanner = new MediaScanner( $this->logger );
 		
 		// Set default image MIME types via hook.
-		add_filter( 'flux_ai_alt_creator_default_mime_types', [ $this, 'get_default_image_mime_types' ], 10, 2 );
+		add_filter( 'flux_ai_alt_creator/media_scanner/get_default_mime_types', [ $this, 'get_default_image_mime_types' ], 10, 2 );
 		
 		// Initialize async job service.
-		$this->async_job_service = new AsyncJobService( $this->logger, $this->openai_service, $this->media_scanner );
+		$this->async_job_service = new AsyncJobService( $this->logger, $this->alt_text_api_service, $this->media_scanner );
 		
 		// Initialize Action Scheduler service.
 		$action_scheduler_service = new ActionSchedulerService( $this->logger, $this->async_job_service );
@@ -173,7 +185,7 @@ class Plugin {
 		$this->providers['media_scan'] = new MediaScanProvider( $this->media_scanner, $this->logger );
 		
 		// Alt text provider - handles alt text generation hooks.
-		$this->providers['alt_text'] = new AltTextProvider( $this->openai_service, $this->logger );
+		$this->providers['alt_text'] = new AltTextProvider( $this->alt_text_api_service, $this->media_scanner, $this->logger );
 		
 		// Usage tracking provider - handles usage tracking hooks.
 		$this->providers['usage_tracking'] = new UsageTrackingProvider( $this->usage_tracker, $this->logger );
@@ -213,7 +225,7 @@ class Plugin {
 	 * Get default image MIME types.
 	 *
 	 * This method provides image MIME types as the default when no other
-	 * MIME types are provided via the flux_ai_alt_creator_default_mime_types hook.
+	 * MIME types are provided via the flux_ai_alt_creator/media_scanner/get_default_mime_types hook.
 	 *
 	 * @since 1.0.0
 	 * @param array $default_mime_types Default MIME types (empty by default).

@@ -78,21 +78,6 @@ class OpenAIService {
 			return null;
 		}
 
-		/**
-		 * Filter to allow overriding alt text generation.
-		 *
-		 * @since 1.0.0
-		 * @param null|string $alt_text Alt text (null to use default generation).
-		 * @param string      $media_url Media URL.
-		 * @param int         $media_id Media ID.
-		 */
-		$alt_text_override = apply_filters( 'flux_ai_alt_creator_generate_alt_text', null, '', 0 );
-		
-		if ( $alt_text_override !== null ) {
-			// Override is handling generation, don't initialize client.
-			return null;
-		}
-
 		// Initialize API client.
 		$this->api_client = new OpenAIApiClient( $api_key, $this->logger );
 
@@ -109,45 +94,13 @@ class OpenAIService {
 	 */
 	public function generate_alt_text( $media_url, $media_id ) {
 		/**
-		 * Fires before generating alt text.
+		 * Fires before generating alt text via OpenAI.
 		 *
 		 * @since 1.0.0
 		 * @param string $media_url Media URL.
 		 * @param int    $media_id Media ID.
 		 */
-		do_action( 'flux_ai_alt_creator_before_generate_alt_text', $media_url, $media_id );
-
-		/**
-		 * Filter to allow overriding alt text generation.
-		 *
-		 * @since 1.0.0
-		 * @param null|string $alt_text Alt text (null to use default generation).
-		 * @param string      $media_url Media URL.
-		 * @param int         $media_id Media ID.
-		 */
-		$alt_text_override = apply_filters( 'flux_ai_alt_creator_generate_alt_text', null, $media_url, $media_id );
-		
-		if ( $alt_text_override !== null ) {
-			// Override handled generation.
-			$result = [
-				'success' => true,
-				'alt_text' => $alt_text_override,
-				'tokens_used' => 0,
-				'cost' => 0.0,
-			];
-			
-			/**
-			 * Fires after generating alt text.
-			 *
-			 * @since 1.0.0
-			 * @param array  $result Generation result.
-			 * @param string $media_url Media URL.
-			 * @param int    $media_id Media ID.
-			 */
-			do_action( 'flux_ai_alt_creator_after_generate_alt_text', $result, $media_url, $media_id );
-			
-			return $result;
-		}
+		do_action( 'flux_ai_alt_creator/openai_service/generate_alt_text/before', $media_url, $media_id );
 
 		$api_client = $this->get_api_client();
 		
@@ -172,7 +125,7 @@ class OpenAIService {
 		 * @param string $media_url Media URL.
 		 * @param int    $media_id Media ID.
 		 */
-		$prompt = apply_filters( 'flux_ai_alt_creator_alt_text_prompt', $prompt, $media_url, $media_id );
+		$prompt = apply_filters( 'flux_ai_alt_creator/openai_service/get_alt_text_prompt', $prompt, $media_url, $media_id );
 
 		// Use OpenAI Vision API with GPT-4o-mini.
 		$response = $api_client->generate_vision_content( $media_url, $prompt, 'gpt-4o-mini', 150 );
@@ -221,14 +174,14 @@ class OpenAIService {
 		] );
 
 		/**
-		 * Fires after generating alt text.
+		 * Fires after generating alt text via OpenAI.
 		 *
 		 * @since 1.0.0
 		 * @param array  $result Generation result.
 		 * @param string $media_url Media URL.
 		 * @param int    $media_id Media ID.
 		 */
-		do_action( 'flux_ai_alt_creator_after_generate_alt_text', $result, $media_url, $media_id );
+		do_action( 'flux_ai_alt_creator/openai_service/generate_alt_text/after', $result, $media_url, $media_id );
 
 		return $result;
 	}

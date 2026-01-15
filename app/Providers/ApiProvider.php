@@ -136,7 +136,7 @@ class ApiProvider {
 		 *
 		 * @since 1.0.0
 		 */
-		do_action( 'flux_ai_alt_creator_register_api_routes' );
+		do_action( 'flux_ai_alt_creator/api_provider/register_routes' );
 	}
 }
 
