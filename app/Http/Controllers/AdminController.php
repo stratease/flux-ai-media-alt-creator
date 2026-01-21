@@ -129,11 +129,14 @@ class AdminController {
 		// Get script URL based on debug mode.
 		$script_url = $this->get_script_url();
 
+		// Build script dependencies.
+		$dependencies = [ 'wp-api-fetch', 'wp-element', 'wp-components', 'wp-i18n' ];
+
 		// Enqueue the main admin script.
 		wp_enqueue_script(
 			'flux-ai-media-alt-creator-admin',
 			$script_url,
-			[ 'wp-api-fetch', 'wp-element', 'wp-components', 'wp-i18n' ],
+			$dependencies,
 			FLUX_AI_MEDIA_ALT_CREATOR_VERSION,
 			true
 		);
@@ -164,7 +167,7 @@ class AdminController {
 	private function get_script_url() {
 		// Use webpack dev server if debug mode is enabled.
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
-			return 'http://localhost:3000/admin.bundle.js';
+			return 'http://localhost:3002/admin.bundle.js';
 		}
 
 		// Use built asset.
@@ -186,12 +189,12 @@ class AdminController {
 					<p><strong><?php esc_html_e( 'Development Mode Active', 'flux-ai-media-alt-creator' ); ?></strong></p>
 					<p><?php esc_html_e( 'Development mode is enabled. The admin interface is attempting to load the React development bundle from:', 'flux-ai-media-alt-creator' ); ?></p>
 					<p><code><?php echo esc_html( $this->get_script_url() ); ?></code></p>
-					<p><?php esc_html_e( 'This assumes you are testing on a localhost WordPress environment with the webpack dev server running on port 3000.', 'flux-ai-media-alt-creator' ); ?></p>
+					<p><?php esc_html_e( 'This assumes you are testing on a localhost WordPress environment with the webpack dev server running on port 3002.', 'flux-ai-media-alt-creator' ); ?></p>
 					<p><strong><?php esc_html_e( 'To use the development build:', 'flux-ai-media-alt-creator' ); ?></strong></p>
 					<ol>
 						<li><?php esc_html_e( 'Navigate to the plugin directory in your terminal', 'flux-ai-media-alt-creator' ); ?></li>
 						<li><?php esc_html_e( 'Run "npm run start" to start the webpack dev server', 'flux-ai-media-alt-creator' ); ?></li>
-						<li><?php esc_html_e( 'Ensure the dev server is running on http://localhost:3000', 'flux-ai-media-alt-creator' ); ?></li>
+						<li><?php esc_html_e( 'Ensure the dev server is running on http://localhost:3002', 'flux-ai-media-alt-creator' ); ?></li>
 						<li><?php esc_html_e( 'Refresh this page to load the development build', 'flux-ai-media-alt-creator' ); ?></li>
 					</ol>
 				</div>
@@ -213,7 +216,7 @@ class AdminController {
 		if ( ! defined( 'FLUX_AI_MEDIA_ALT_CREATOR_PRO_VERSION' ) ) {
 			$upgrade_link = sprintf(
 				'<a href="%s" target="_blank" rel="noopener noreferrer" style="color: #2271b1; font-weight: 600;">%s</a>',
-				esc_url( 'https://fluxplugins.com/ai-media-alt-text-creator-pro/' ),
+				esc_url( 'https://fluxplugins.com/ai-media-alt-creator-pro/' ),
 				esc_html__( 'Upgrade to Pro', 'flux-ai-media-alt-creator' )
 			);
 			

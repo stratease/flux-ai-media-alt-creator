@@ -443,8 +443,8 @@ const MediaRow = React.memo(({
       <TableCell>{media.filename}</TableCell>
       <TableCell>
         <Chip
-          label={getStatusLabel(media.ai_status)}
-          color={getStatusColor(media.ai_status)}
+          label={getStatusLabel(media.scan_status)}
+          color={getStatusColor(media.scan_status)}
           size="small"
         />
       </TableCell>
@@ -472,7 +472,7 @@ const MediaRow = React.memo(({
     prevProps.mediaId === nextProps.mediaId &&
     prevProps.isSelected === nextProps.isSelected &&
     prevProps.altText === nextProps.altText &&
-    prevProps.media.ai_status === nextProps.media.ai_status &&
+    prevProps.media.scan_status === nextProps.media.scan_status &&
     prevProps.media.filename === nextProps.media.filename &&
     prevProps.media.thumbnail_url === nextProps.media.thumbnail_url &&
     prevProps.media.edit_url === nextProps.media.edit_url

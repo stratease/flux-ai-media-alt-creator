@@ -9,7 +9,7 @@
 namespace FluxAIMediaAltCreator\App\Http\Controllers;
 
 use FluxAIMediaAltCreator\App\Services\MediaScanner;
-use FluxAIMediaAltCreator\App\Services\Logger;
+use FluxAIMediaAltCreator\FluxPlugins\Common\Logger\Logger;
 use WP_REST_Request;
 use WP_REST_Response;
 
@@ -33,11 +33,10 @@ class MediaController extends BaseController {
 	 *
 	 * @since 1.0.0
 	 * @param MediaScanner $media_scanner Media scanner instance.
-	 * @param Logger       $logger Logger instance.
 	 */
-	public function __construct( MediaScanner $media_scanner, Logger $logger ) {
+	public function __construct( MediaScanner $media_scanner ) {
 		$this->media_scanner = $media_scanner;
-		parent::__construct( $logger );
+		parent::__construct();
 	}
 
 	/**
@@ -209,7 +208,7 @@ class MediaController extends BaseController {
 				'thumbnail_url' => $thumbnail_url ? $thumbnail_url : '',
 				'full_url' => $full_url ? $full_url : '',
 				'edit_url' => admin_url( "post.php?post={$media_id}&action=edit" ),
-				'ai_status' => $scan_data['ai_status'] ?? 'pending',
+				'scan_status' => $this->media_scanner->get_scan_status( $media_id ),
 				'recommended_alt_text' => $scan_data['recommended_alt_text'] ?? '',
 				'applied' => $scan_data['applied'] ?? false,
 				'error_message' => $scan_data['error_message'] ?? '',

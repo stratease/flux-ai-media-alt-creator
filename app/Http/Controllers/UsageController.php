@@ -9,7 +9,7 @@
 namespace FluxAIMediaAltCreator\App\Http\Controllers;
 
 use FluxAIMediaAltCreator\App\Services\UsageTracker;
-use FluxAIMediaAltCreator\App\Services\Logger;
+use FluxAIMediaAltCreator\FluxPlugins\Common\Logger\Logger;
 use WP_REST_Request;
 use WP_REST_Response;
 
@@ -33,11 +33,10 @@ class UsageController extends BaseController {
 	 *
 	 * @since 1.0.0
 	 * @param UsageTracker $usage_tracker Usage tracker instance.
-	 * @param Logger      $logger Logger instance.
 	 */
-	public function __construct( UsageTracker $usage_tracker, Logger $logger ) {
+	public function __construct( UsageTracker $usage_tracker ) {
 		$this->usage_tracker = $usage_tracker;
-		parent::__construct( $logger );
+		parent::__construct();
 	}
 
 	/**

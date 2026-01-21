@@ -66,8 +66,13 @@ module.exports = {
       directory: path.join(__dirname, 'assets/js/dist'),
     },
     compress: true,
-    port: 3000,
+    port: 3002, // Different port from other Flux plugins (3000, 3003, etc.)
     hot: true,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+      'Access-Control-Allow-Headers': 'X-Requested-With, content-type, Authorization',
+    },
   },
   externals: {
     ...baseConfig.externals,

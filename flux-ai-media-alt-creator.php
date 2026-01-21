@@ -3,7 +3,7 @@
  * Plugin Name: Flux AI Media Alt Creator by Flux Plugins
  * Plugin URI: https://fluxplugins.com/ai-media-alt-creator
  * Description: Automatically generate AI-powered alt text for media files using OpenAI's GPT-4o-mini.
- * Version: 1.0.0
+ * Version: 1.1.0
  * Author: Flux Plugins
  * Author URI: https://fluxplugins.com
  * License: GPL-2.0+
@@ -21,6 +21,7 @@
  */
 
 use FluxAIMediaAltCreator\FluxPlugins\Common\FluxPlugins;
+use FluxAIMediaAltCreator\App\Services\AsyncJobService;
 
 // Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -28,7 +29,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants.
-define( 'FLUX_AI_MEDIA_ALT_CREATOR_VERSION', '1.0.0' );
+define( 'FLUX_AI_MEDIA_ALT_CREATOR_VERSION', '1.1.0' );
 define( 'FLUX_AI_MEDIA_ALT_CREATOR_PLUGIN_FILE', __FILE__ );
 define( 'FLUX_AI_MEDIA_ALT_CREATOR_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'FLUX_AI_MEDIA_ALT_CREATOR_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -250,6 +251,10 @@ function flux_ai_media_alt_creator_activate() {
 function flux_ai_media_alt_creator_deactivate() {
 	// Clear any scheduled WP Cron events.
 	wp_clear_scheduled_hook( 'flux_ai_media_alt_creator_cleanup' );
+
+	// Cancel all Free plugin action scheduler actions.
+	$async_job_service = AsyncJobService::get_instance();
+	$async_job_service->cancel_all_actions();
 }
 
 /**

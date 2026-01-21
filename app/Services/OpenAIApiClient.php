@@ -8,6 +8,8 @@
 
 namespace FluxAIMediaAltCreator\App\Services;
 
+use FluxAIMediaAltCreator\FluxPlugins\Common\Logger\Logger;
+
 /**
  * Decoupled OpenAI API client for making direct HTTP requests.
  *
@@ -32,23 +34,13 @@ class OpenAIApiClient {
 	private $api_key;
 
 	/**
-	 * Logger instance.
-	 *
-	 * @since 1.0.0
-	 * @var Logger
-	 */
-	private $logger;
-
-	/**
 	 * Constructor.
 	 *
 	 * @since 1.0.0
 	 * @param string $api_key OpenAI API key.
-	 * @param Logger $logger Logger instance.
 	 */
-	public function __construct( $api_key, Logger $logger ) {
+	public function __construct( $api_key ) {
 		$this->api_key = $api_key;
-		$this->logger = $logger;
 	}
 
 	/**
@@ -219,7 +211,7 @@ class OpenAIApiClient {
 		// Check for WordPress HTTP errors.
 		if ( is_wp_error( $response ) ) {
 			$error_message = $response->get_error_message();
-			$this->logger->error( 'OpenAI API request failed', [
+			Logger::get_instance()->error( 'OpenAI API request failed', [
 				'error' => $error_message,
 				'endpoint' => $endpoint,
 			] );
@@ -238,7 +230,7 @@ class OpenAIApiClient {
 		// Check for HTTP errors.
 		if ( $response_code < 200 || $response_code >= 300 ) {
 			$error_message = $this->extract_error_message( $response_data, $response_code );
-			$this->logger->error( 'OpenAI API returned error', [
+			Logger::get_instance()->error( 'OpenAI API returned error', [
 				'code' => $response_code,
 				'error' => $error_message,
 				'response' => $response_data,

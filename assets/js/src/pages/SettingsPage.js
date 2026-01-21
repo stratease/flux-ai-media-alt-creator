@@ -40,7 +40,7 @@ const SettingsPage = () => {
 
   const shouldShowApiKeyField = fieldVisibility?.should_show !== false;
   
-  // Check if Pro version is active
+  // Check if Pro version is active - hides Pro upsell message when active
   const isProActive = typeof window !== 'undefined' && window.fluxAIMediaAltCreatorAdmin?.isProActive === true;
 
   const handleSettingChange = (key) => (event) => {
@@ -86,6 +86,15 @@ const SettingsPage = () => {
                 />
                 <FormHelperText sx={{ mt: 1 }}>
                   {__('Your API key is stored securely and never shared.', 'flux-ai-media-alt-creator')}
+                  {' '}
+                  <Link
+                    href="https://platform.openai.com/settings/organization/api-keys"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    sx={{ textDecoration: 'none' }}
+                  >
+                    {__('Create an API key', 'flux-ai-media-alt-creator')}
+                  </Link>
                 </FormHelperText>
               </Box>
             </Collapse>
@@ -169,7 +178,7 @@ const SettingsPage = () => {
                   <Button
                     variant="contained"
                     color="primary"
-                    href="https://fluxplugins.com/ai-media-alt-text-creator-pro/"
+                    href="https://fluxplugins.com/ai-media-alt-creator-pro/"
                     target="_blank"
                     rel="noopener noreferrer"
                     fullWidth

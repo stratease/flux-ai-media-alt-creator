@@ -12,6 +12,9 @@
 
 namespace FluxAIMediaAltCreator\App\Services;
 
+use FluxAIMediaAltCreator\FluxPlugins\Common\Logger\Logger;
+use FluxAIMediaAltCreator\App\Services\OpenAIService;
+
 /**
  * Abstracted service for alt text generation API calls.
  *
@@ -20,41 +23,33 @@ namespace FluxAIMediaAltCreator\App\Services;
 class AltTextApiService {
 
 	/**
-	 * Logger instance.
+	 * Singleton instance.
 	 *
 	 * @since 1.0.0
-	 * @var Logger
+	 * @var AltTextApiService|null
 	 */
-	private $logger;
-
-	/**
-	 * OpenAI service instance.
-	 *
-	 * @since 1.0.0
-	 * @var OpenAIService
-	 */
-	private $openai_service;
-
-	/**
-	 * Usage tracker instance.
-	 *
-	 * @since 1.0.0
-	 * @var UsageTracker
-	 */
-	private $usage_tracker;
+	private static $instance = null;
 
 	/**
 	 * Constructor.
 	 *
 	 * @since 1.0.0
-	 * @param Logger        $logger Logger instance.
-	 * @param OpenAIService $openai_service OpenAI service instance.
-	 * @param UsageTracker  $usage_tracker Usage tracker instance.
 	 */
-	public function __construct( Logger $logger, OpenAIService $openai_service, UsageTracker $usage_tracker ) {
-		$this->logger = $logger;
-		$this->openai_service = $openai_service;
-		$this->usage_tracker = $usage_tracker;
+	private function __construct() {
+		// Private constructor for singleton pattern.
+	}
+
+	/**
+	 * Get singleton instance.
+	 *
+	 * @since 1.0.0
+	 * @return AltTextApiService Singleton instance.
+	 */
+	public static function get_instance() {
+		if ( self::$instance === null ) {
+			self::$instance = new self();
+		}
+		return self::$instance;
 	}
 
 	/**
@@ -108,14 +103,14 @@ class AltTextApiService {
 
 		if ( $intercepted_result !== null && is_array( $intercepted_result ) ) {
 			// Intercepted by filter - use the provided result.
-			$this->logger->debug( 'Alt text generation intercepted via filter', [
+			Logger::get_instance()->debug( 'Alt text generation intercepted via filter', [
 				'attachment_id' => $attachment_id,
 			] );
 			return $intercepted_result;
 		}
 
 		// Use default OpenAI service.
-		return $this->openai_service->generate_alt_text( $media_url, $attachment_id );
+		return OpenAIService::get_instance()->generate_alt_text( $media_url, $attachment_id );
 	}
 }
 

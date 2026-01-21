@@ -11,6 +11,8 @@
 
 namespace FluxAIMediaAltCreator\App\Services;
 
+use FluxAIMediaAltCreator\FluxPlugins\Common\Logger\Logger;
+
 /**
  * Service for managing Action Scheduler integration.
  *
@@ -19,31 +21,12 @@ namespace FluxAIMediaAltCreator\App\Services;
 class ActionSchedulerService {
 
 	/**
-	 * Logger instance.
-	 *
-	 * @since 1.0.0
-	 * @var Logger
-	 */
-	private $logger;
-
-	/**
-	 * Async job service instance.
-	 *
-	 * @since 1.0.0
-	 * @var AsyncJobService
-	 */
-	private $async_job_service;
-
-	/**
 	 * Constructor.
 	 *
 	 * @since 1.0.0
-	 * @param Logger          $logger Logger instance.
-	 * @param AsyncJobService $async_job_service Async job service instance.
 	 */
-	public function __construct( Logger $logger, AsyncJobService $async_job_service ) {
-		$this->logger = $logger;
-		$this->async_job_service = $async_job_service;
+	public function __construct() {
+		// Constructor for Action Scheduler service.
 	}
 
 	/**
@@ -58,8 +41,7 @@ class ActionSchedulerService {
 	public function init() {
 		// Check if Action Scheduler is already loaded (e.g., by WooCommerce or another plugin).
 		if ( function_exists( 'as_schedule_single_action' ) ) {
-			// Action Scheduler already loaded, just register our hooks.
-			$this->register_action_hooks();
+			// Action Scheduler already loaded.
 			return;
 		}
 
@@ -67,7 +49,7 @@ class ActionSchedulerService {
 		$action_scheduler_file = FLUX_AI_MEDIA_ALT_CREATOR_PLUGIN_DIR . 'vendor/woocommerce/action-scheduler/action-scheduler.php';
 		
 		if ( ! file_exists( $action_scheduler_file ) ) {
-			$this->logger->error( 'Action Scheduler library not found. Please run "composer install" to install Action Scheduler.' );
+			Logger::get_instance()->error( 'Action Scheduler library not found. Please run "composer install" to install Action Scheduler.' );
 			return;
 		}
 
@@ -75,23 +57,10 @@ class ActionSchedulerService {
 
 		// Verify Action Scheduler functions are available.
 		if ( ! function_exists( 'as_schedule_single_action' ) ) {
-			$this->logger->error( 'Action Scheduler functions not available after loading. Check Action Scheduler installation.' );
+			Logger::get_instance()->error( 'Action Scheduler functions not available after loading. Check Action Scheduler installation.' );
 			return;
 		}
-
-		// Register action hooks.
-		$this->register_action_hooks();
 	}
 
-	/**
-	 * Register Action Scheduler action hooks.
-	 *
-	 * @since 1.0.0
-	 * @return void
-	 */
-	private function register_action_hooks() {
-		// Hooks are registered in AsyncJobService.
-		// This method exists for future extensibility.
-	}
 }
 

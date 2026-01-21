@@ -8,6 +8,8 @@
 
 namespace FluxAIMediaAltCreator\App\Services;
 
+use FluxAIMediaAltCreator\FluxPlugins\Common\Logger\Logger;
+
 /**
  * Service to scan WordPress media library for media files without alt text.
  *
@@ -16,21 +18,41 @@ namespace FluxAIMediaAltCreator\App\Services;
 class MediaScanner {
 
 	/**
-	 * Logger instance.
+	 * Singleton instance.
 	 *
 	 * @since 1.0.0
-	 * @var Logger
+	 * @var MediaScanner|null
 	 */
-	private $logger;
+	private static $instance = null;
+
+	/**
+	 * Meta key for scan status.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
+	const SCAN_STATUS_META_KEY = '_flux_ai_alt_creator_scan_status';
 
 	/**
 	 * Constructor.
 	 *
 	 * @since 1.0.0
-	 * @param Logger $logger Logger instance.
 	 */
-	public function __construct( Logger $logger ) {
-		$this->logger = $logger;
+	private function __construct() {
+		// Private constructor for singleton pattern.
+	}
+
+	/**
+	 * Get singleton instance.
+	 *
+	 * @since 1.0.0
+	 * @return MediaScanner Singleton instance.
+	 */
+	public static function get_instance() {
+		if ( self::$instance === null ) {
+			self::$instance = new self();
+		}
+		return self::$instance;
 	}
 
 	/**
@@ -68,12 +90,7 @@ class MediaScanner {
 		 * @param array $additional_params Additional search parameters from request.
 		 * @return array Array of default MIME types.
 		 */
-		$default_mime_types = apply_filters( 'flux_ai_alt_creator/media_scanner/get_default_mime_types', [], $additional_params );
-
-		// If no default MIME types are provided via hook, use image types as fallback.
-		if ( empty( $default_mime_types ) ) {
-			$default_mime_types = $this->get_default_image_mime_types();
-		}
+		$default_mime_types = apply_filters( 'flux_ai_alt_creator/media_scanner/get_default_mime_types', self::get_default_image_mime_types(), $additional_params );
 
 		/**
 		 * Filter the MIME types to search for.
@@ -269,12 +286,39 @@ class MediaScanner {
 			'thumbnail_url' => $thumbnail_url ? $thumbnail_url : '',
 			'full_url' => $full_url ? $full_url : '',
 			'edit_url' => admin_url( "post.php?post={$attachment_id}&action=edit" ),
-			'ai_status' => $scan_data['ai_status'] ?? 'pending',
+			'scan_status' => $this->get_scan_status( $attachment_id ),
 			'recommended_alt_text' => $scan_data['recommended_alt_text'] ?? '',
 			'applied' => $scan_data['applied'] ?? false,
 			'error_message' => $scan_data['error_message'] ?? '',
 			'scan_date' => $scan_data['scan_date'] ?? null,
 		];
+	}
+
+	/**
+	 * Get scan status for a specific media file.
+	 *
+	 * @since 1.0.0
+	 * @param int $attachment_id Attachment ID.
+	 * @return string Scan status. Default 'pending'.
+	 */
+	public function get_scan_status( $attachment_id ) {
+		$status = get_post_meta( $attachment_id, self::SCAN_STATUS_META_KEY, true );
+		if ( empty( $status ) || ! is_string( $status ) ) {
+			return 'pending';
+		}
+		return $status;
+	}
+
+	/**
+	 * Update scan status for a specific media file.
+	 *
+	 * @since 1.0.0
+	 * @param int    $attachment_id Attachment ID.
+	 * @param string $status Scan status.
+	 * @return void
+	 */
+	public function update_scan_status( $attachment_id, $status ) {
+		update_post_meta( $attachment_id, self::SCAN_STATUS_META_KEY, sanitize_text_field( $status ) );
 	}
 
 	/**
@@ -288,14 +332,19 @@ class MediaScanner {
 		$scan_data = get_post_meta( $attachment_id, '_flux_ai_alt_creator_scan_data', true );
 		
 		if ( ! is_array( $scan_data ) ) {
-			return [
-				'ai_status' => 'pending',
-				'recommended_alt_text' => '',
-				'applied' => false,
-				'error_message' => '',
-				'scan_date' => null,
-			];
+			$scan_data = [];
 		}
+		
+		// Always include scan status from separate meta field.
+		$scan_data['scan_status'] = $this->get_scan_status( $attachment_id );
+		
+		// Set defaults for missing fields.
+		$scan_data = array_merge( [
+			'recommended_alt_text' => '',
+			'applied' => false,
+			'error_message' => '',
+			'scan_date' => null,
+		], $scan_data );
 		
 		return $scan_data;
 	}
@@ -310,7 +359,16 @@ class MediaScanner {
 	 */
 	public function update_scan_data( $attachment_id, $scan_data ) {
 		$existing_data = $this->get_scan_data( $attachment_id );
+		
+		// Extract scan_status if present and update separately.
+		if ( isset( $scan_data['scan_status'] ) ) {
+			$this->update_scan_status( $attachment_id, $scan_data['scan_status'] );
+			unset( $scan_data['scan_status'] ); // Remove from scan_data array.
+		}
+		
 		$updated_data = array_merge( $existing_data, $scan_data );
+		// Don't overwrite scan_status in scan_data, it comes from separate meta field.
+		unset( $updated_data['scan_status'] );
 		$updated_data['scan_date'] = current_time( 'mysql' );
 		
 		update_post_meta( $attachment_id, '_flux_ai_alt_creator_scan_data', $updated_data );
@@ -325,7 +383,7 @@ class MediaScanner {
 	 * @since 1.0.0
 	 * @return array Array of image MIME types.
 	 */
-	private function get_default_image_mime_types() {
+	public static function get_default_image_mime_types() {
 		return [
 			'image/jpeg',
 			'image/jpg',
@@ -353,7 +411,7 @@ class MediaScanner {
 		$default_groups = [
 			'images' => [
 				'label' => __( 'Images', 'flux-ai-media-alt-creator' ),
-				'mime_types' => $this->get_default_image_mime_types(),
+				'mime_types' => self::get_default_image_mime_types(),
 			],
 		];
 

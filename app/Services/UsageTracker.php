@@ -8,6 +8,8 @@
 
 namespace FluxAIMediaAltCreator\App\Services;
 
+use FluxAIMediaAltCreator\FluxPlugins\Common\Logger\Logger;
+
 /**
  * Service for tracking OpenAI API usage and costs.
  *
@@ -16,12 +18,12 @@ namespace FluxAIMediaAltCreator\App\Services;
 class UsageTracker {
 
 	/**
-	 * Logger instance.
+	 * Singleton instance.
 	 *
 	 * @since 1.0.0
-	 * @var Logger
+	 * @var UsageTracker|null
 	 */
-	private $logger;
+	private static $instance = null;
 
 	/**
 	 * Option name for current month usage.
@@ -35,10 +37,22 @@ class UsageTracker {
 	 * Constructor.
 	 *
 	 * @since 1.0.0
-	 * @param Logger $logger Logger instance.
 	 */
-	public function __construct( Logger $logger ) {
-		$this->logger = $logger;
+	private function __construct() {
+		// Private constructor for singleton pattern.
+	}
+
+	/**
+	 * Get singleton instance.
+	 *
+	 * @since 1.0.0
+	 * @return UsageTracker Singleton instance.
+	 */
+	public static function get_instance() {
+		if ( self::$instance === null ) {
+			self::$instance = new self();
+		}
+		return self::$instance;
 	}
 
 	/**
@@ -95,7 +109,7 @@ class UsageTracker {
 		
 		update_option( $this->option_name, $usage );
 		
-		$this->logger->debug( 'Tracked API usage', [
+		Logger::get_instance()->debug( 'Tracked API usage', [
 			'tokens_used' => $tokens_used,
 			'model' => $model,
 			'cost' => $cost,
@@ -152,7 +166,7 @@ class UsageTracker {
 		
 		update_option( $this->option_name, $defaults );
 		
-		$this->logger->info( 'Reset monthly usage statistics' );
+		Logger::get_instance()->info( 'Reset monthly usage statistics' );
 		
 		/**
 		 * Fires after usage statistics are reset.

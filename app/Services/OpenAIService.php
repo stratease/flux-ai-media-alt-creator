@@ -8,6 +8,9 @@
 
 namespace FluxAIMediaAltCreator\App\Services;
 
+use FluxAIMediaAltCreator\FluxPlugins\Common\Logger\Logger;
+use FluxAIMediaAltCreator\App\Services\UsageTracker;
+
 /**
  * Service to interact with OpenAI API for alt text generation.
  *
@@ -16,20 +19,12 @@ namespace FluxAIMediaAltCreator\App\Services;
 class OpenAIService {
 
 	/**
-	 * Logger instance.
+	 * Singleton instance.
 	 *
 	 * @since 1.0.0
-	 * @var Logger
+	 * @var OpenAIService|null
 	 */
-	private $logger;
-
-	/**
-	 * Usage tracker instance.
-	 *
-	 * @since 1.0.0
-	 * @var UsageTracker
-	 */
-	private $usage_tracker;
+	private static $instance = null;
 
 	/**
 	 * Settings instance.
@@ -51,13 +46,22 @@ class OpenAIService {
 	 * Constructor.
 	 *
 	 * @since 1.0.0
-	 * @param Logger        $logger Logger instance.
-	 * @param UsageTracker  $usage_tracker Usage tracker instance.
 	 */
-	public function __construct( Logger $logger, UsageTracker $usage_tracker ) {
-		$this->logger = $logger;
-		$this->usage_tracker = $usage_tracker;
+	private function __construct() {
 		$this->settings = new Settings();
+	}
+
+	/**
+	 * Get singleton instance.
+	 *
+	 * @since 1.0.0
+	 * @return OpenAIService Singleton instance.
+	 */
+	public static function get_instance() {
+		if ( self::$instance === null ) {
+			self::$instance = new self();
+		}
+		return self::$instance;
 	}
 
 	/**
@@ -74,12 +78,12 @@ class OpenAIService {
 		$api_key = Settings::get_openai_api_key();
 		
 		if ( empty( $api_key ) ) {
-			$this->logger->warning( 'OpenAI API key not set' );
+			Logger::get_instance()->warning( 'OpenAI API key not set' );
 			return null;
 		}
 
 		// Initialize API client.
-		$this->api_client = new OpenAIApiClient( $api_key, $this->logger );
+		$this->api_client = new OpenAIApiClient( $api_key );
 
 		return $this->api_client;
 	}
@@ -131,7 +135,7 @@ class OpenAIService {
 		$response = $api_client->generate_vision_content( $media_url, $prompt, 'gpt-4o-mini', 150 );
 
 		if ( ! $response['success'] ) {
-			$this->logger->error( 'Failed to generate alt text', [
+			Logger::get_instance()->error( 'Failed to generate alt text', [
 				'media_id' => $media_id,
 				'error' => $response['error'] ?? 'Unknown error',
 			] );
@@ -158,7 +162,7 @@ class OpenAIService {
 		$cost = ( $input_tokens / 1000000 * 0.15 ) + ( $output_tokens / 1000000 * 0.60 );
 		
 		// Track usage.
-		$this->usage_tracker->track_request( $tokens_used, 'gpt-4o-mini', $cost );
+		UsageTracker::get_instance()->track_request( $tokens_used, 'gpt-4o-mini', $cost );
 		
 		$result = [
 			'success' => true,
@@ -167,7 +171,7 @@ class OpenAIService {
 			'cost' => $cost,
 		];
 		
-		$this->logger->info( 'Generated alt text', [
+		Logger::get_instance()->info( 'Generated alt text', [
 			'media_id' => $media_id,
 			'tokens_used' => $tokens_used,
 			'cost' => $cost,

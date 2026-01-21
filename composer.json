@@ -94,6 +94,7 @@
             },
             "exclude_from_copy": {
                 "packages": [
+                    "woocommerce/action-scheduler"
                 ],
                 "namespaces": [
                 ],

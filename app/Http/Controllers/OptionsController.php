@@ -9,7 +9,7 @@
 namespace FluxAIMediaAltCreator\App\Http\Controllers;
 
 use FluxAIMediaAltCreator\App\Services\Settings;
-use FluxAIMediaAltCreator\App\Services\Logger;
+use FluxAIMediaAltCreator\FluxPlugins\Common\Logger\Logger;
 use FluxAIMediaAltCreator\App\Http\Controllers\AdminController;
 use WP_REST_Request;
 use WP_REST_Response;
@@ -34,11 +34,10 @@ class OptionsController extends BaseController {
 	 *
 	 * @since 1.0.0
 	 * @param Settings $settings Settings instance.
-	 * @param Logger   $logger Logger instance.
 	 */
-	public function __construct( Settings $settings, Logger $logger ) {
+	public function __construct( Settings $settings ) {
 		$this->settings = $settings;
-		parent::__construct( $logger );
+		parent::__construct();
 	}
 
 	/**

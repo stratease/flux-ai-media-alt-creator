@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4103d74f001c323c79648c6cf7d69bb0",
+    "content-hash": "4eb2304df39bb5a53315f5f00b0c1fce",
     "packages": [
         {
             "name": "stratease/flux-plugins-common",
@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/stratease/flux-plugins-common.git",
-                "reference": "96072dc37f5b2fd24b6172239d94928c62a643ed"
+                "reference": "401a46d1cd3e2ebc91afe3c38b133e71994518e0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/stratease/flux-plugins-common/zipball/96072dc37f5b2fd24b6172239d94928c62a643ed",
-                "reference": "96072dc37f5b2fd24b6172239d94928c62a643ed",
+                "url": "https://api.github.com/repos/stratease/flux-plugins-common/zipball/401a46d1cd3e2ebc91afe3c38b133e71994518e0",
+                "reference": "401a46d1cd3e2ebc91afe3c38b133e71994518e0",
                 "shasum": ""
             },
             "require": {
@@ -61,7 +61,7 @@
                 "source": "https://github.com/stratease/flux-plugins-common/tree/master",
                 "issues": "https://github.com/stratease/flux-plugins-common/issues"
             },
-            "time": "2026-01-15T17:40:49+00:00"
+            "time": "2026-01-20T16:08:58+00:00"
         },
         {
             "name": "woocommerce/action-scheduler",

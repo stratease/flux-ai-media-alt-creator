@@ -8,7 +8,7 @@
 
 namespace FluxAIMediaAltCreator\App\Http\Controllers;
 
-use FluxAIMediaAltCreator\App\Services\Logger;
+use FluxAIMediaAltCreator\FluxPlugins\Common\Logger\Logger;
 use WP_REST_Controller;
 use WP_REST_Request;
 use WP_REST_Response;
@@ -21,21 +21,12 @@ use WP_REST_Response;
 abstract class BaseController extends WP_REST_Controller {
 
 	/**
-	 * Logger instance.
-	 *
-	 * @since 1.0.0
-	 * @var Logger
-	 */
-	protected $logger;
-
-	/**
 	 * Constructor.
 	 *
 	 * @since 1.0.0
-	 * @param Logger $logger Logger instance.
 	 */
-	public function __construct( Logger $logger ) {
-		$this->logger = $logger;
+	public function __construct() {
+		// Base controller constructor.
 	}
 
 	/**
@@ -49,7 +40,7 @@ abstract class BaseController extends WP_REST_Controller {
 	 */
 	protected function create_error_response( $message, $error_code = 'error', $http_status = 500 ) {
 		// Log the error.
-		$this->logger->error( $message, [
+		Logger::get_instance()->error( $message, [
 			'error_code' => $error_code,
 			'http_status' => $http_status,
 		] );

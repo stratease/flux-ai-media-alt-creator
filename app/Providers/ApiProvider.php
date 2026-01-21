@@ -13,7 +13,6 @@ use FluxAIMediaAltCreator\App\Services\MediaScanner;
 use FluxAIMediaAltCreator\App\Services\OpenAIService;
 use FluxAIMediaAltCreator\App\Services\UsageTracker;
 use FluxAIMediaAltCreator\App\Services\AsyncJobService;
-use FluxAIMediaAltCreator\App\Services\Logger;
 
 use FluxAIMediaAltCreator\App\Http\Controllers\MediaController;
 use FluxAIMediaAltCreator\App\Http\Controllers\AltTextController;
@@ -68,14 +67,6 @@ class ApiProvider {
 	private $async_job_service;
 
 	/**
-	 * Logger instance.
-	 *
-	 * @since 1.0.0
-	 * @var Logger
-	 */
-	private $logger;
-
-	/**
 	 * Constructor.
 	 *
 	 * @since 1.0.0
@@ -84,7 +75,6 @@ class ApiProvider {
 	 * @param OpenAIService   $openai_service OpenAI service instance.
 	 * @param UsageTracker    $usage_tracker Usage tracker instance.
 	 * @param AsyncJobService $async_job_service Async job service instance.
-	 * @param Logger          $logger Logger instance.
 	 */
 	public function __construct(
 		Settings $settings,
@@ -92,14 +82,12 @@ class ApiProvider {
 		OpenAIService $openai_service,
 		UsageTracker $usage_tracker,
 		AsyncJobService $async_job_service,
-		Logger $logger
 	) {
 		$this->settings = $settings;
 		$this->media_scanner = $media_scanner;
 		$this->openai_service = $openai_service;
 		$this->usage_tracker = $usage_tracker;
 		$this->async_job_service = $async_job_service;
-		$this->logger = $logger;
 	}
 
 	/**
@@ -120,10 +108,10 @@ class ApiProvider {
 	 */
 	public function register_rest_routes() {
 		// Initialize controllers.
-		$media_controller = new MediaController( $this->media_scanner, $this->logger );
-		$alt_text_controller = new AltTextController( $this->openai_service, $this->media_scanner, $this->async_job_service, $this->logger );
-		$options_controller = new OptionsController( $this->settings, $this->logger );
-		$usage_controller = new UsageController( $this->usage_tracker, $this->logger );
+		$media_controller = new MediaController( $this->media_scanner );
+		$alt_text_controller = new AltTextController( $this->openai_service, $this->media_scanner, $this->async_job_service );
+		$options_controller = new OptionsController( $this->settings );
+		$usage_controller = new UsageController( $this->usage_tracker );
 
 		// Register routes.
 		$media_controller->register_routes();

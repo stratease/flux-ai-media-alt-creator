@@ -11,7 +11,7 @@ namespace FluxAIMediaAltCreator\App\Http\Controllers;
 use FluxAIMediaAltCreator\App\Services\OpenAIService;
 use FluxAIMediaAltCreator\App\Services\MediaScanner;
 use FluxAIMediaAltCreator\App\Services\AsyncJobService;
-use FluxAIMediaAltCreator\App\Services\Logger;
+use FluxAIMediaAltCreator\FluxPlugins\Common\Logger\Logger;
 use WP_REST_Request;
 use WP_REST_Response;
 
@@ -53,13 +53,12 @@ class AltTextController extends BaseController {
 	 * @param OpenAIService  $openai_service OpenAI service instance.
 	 * @param MediaScanner   $media_scanner Media scanner instance.
 	 * @param AsyncJobService $async_job_service Async job service instance.
-	 * @param Logger         $logger Logger instance.
 	 */
-	public function __construct( OpenAIService $openai_service, MediaScanner $media_scanner, AsyncJobService $async_job_service, Logger $logger ) {
+	public function __construct( OpenAIService $openai_service, MediaScanner $media_scanner, AsyncJobService $async_job_service ) {
 		$this->openai_service = $openai_service;
 		$this->media_scanner = $media_scanner;
 		$this->async_job_service = $async_job_service;
-		parent::__construct( $logger );
+		parent::__construct();
 	}
 
 	/**
@@ -175,21 +174,19 @@ class AltTextController extends BaseController {
 				}
 
 				// Update status to processing.
-				$this->media_scanner->update_scan_data( $media_id, [
-					'ai_status' => 'processing',
-				] );
+				$this->media_scanner->update_scan_status( $media_id, 'processing' );
 
 				// Generate alt text.
 				$result = $this->openai_service->generate_alt_text( $media_url, $media_id );
 
 				if ( $result['success'] ) {
+					$this->media_scanner->update_scan_status( $media_id, 'completed' );
 					$this->media_scanner->update_scan_data( $media_id, [
-						'ai_status' => 'completed',
 						'recommended_alt_text' => $result['alt_text'],
 					] );
 				} else {
+					$this->media_scanner->update_scan_status( $media_id, 'error' );
 					$this->media_scanner->update_scan_data( $media_id, [
-						'ai_status' => 'error',
 						'error_message' => $result['error'] ?? 'Unknown error',
 					] );
 				}

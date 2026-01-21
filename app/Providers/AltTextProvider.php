@@ -9,8 +9,9 @@
 namespace FluxAIMediaAltCreator\App\Providers;
 
 use FluxAIMediaAltCreator\App\Services\AltTextApiService;
+use FluxAIMediaAltCreator\App\Services\AsyncJobService;
 use FluxAIMediaAltCreator\App\Services\MediaScanner;
-use FluxAIMediaAltCreator\App\Services\Logger;
+use FluxAIMediaAltCreator\FluxPlugins\Common\Logger\Logger;
 
 /**
  * Provider for alt text generation functionality.
@@ -36,25 +37,15 @@ class AltTextProvider {
 	private $media_scanner;
 
 	/**
-	 * Logger instance.
-	 *
-	 * @since 1.0.0
-	 * @var Logger
-	 */
-	private $logger;
-
-	/**
 	 * Constructor.
 	 *
 	 * @since 1.0.0
 	 * @param AltTextApiService $alt_text_api_service Alt text API service instance.
 	 * @param MediaScanner      $media_scanner Media scanner instance.
-	 * @param Logger            $logger Logger instance.
 	 */
-	public function __construct( AltTextApiService $alt_text_api_service, MediaScanner $media_scanner, Logger $logger ) {
+	public function __construct( AltTextApiService $alt_text_api_service, MediaScanner $media_scanner ) {
 		$this->alt_text_api_service = $alt_text_api_service;
 		$this->media_scanner = $media_scanner;
-		$this->logger = $logger;
 	}
 
 	/**
@@ -66,6 +57,11 @@ class AltTextProvider {
 	public function init() {
 		// Register action hook to process individual attachments.
 		add_action( 'flux_ai_alt_creator/alt_text_provider/process_attachment', [ $this, 'process_attachment' ], 10, 1 );
+
+		// Register Action Scheduler hooks for batch processing.
+		$async_job_service = AsyncJobService::get_instance();
+		add_action( 'flux_ai_alt_creator/async_job_service/generate_alt_text_batch', [ $async_job_service, 'process_alt_text_generation_batch' ], 10, 1 );
+		add_action( 'flux_ai_alt_creator/async_job_service/apply_alt_text_batch', [ $async_job_service, 'process_alt_text_application_batch' ], 10, 1 );
 	}
 
 	/**
@@ -82,7 +78,7 @@ class AltTextProvider {
 		$attachment_id = absint( $attachment_id );
 		
 		if ( ! $attachment_id ) {
-			$this->logger->warning( 'Invalid attachment ID provided to process_attachment', [ 'attachment_id' => $attachment_id ] );
+			Logger::get_instance()->warning( 'Invalid attachment ID provided to process_attachment', [ 'attachment_id' => $attachment_id ] );
 			return [
 				'success' => false,
 				'alt_text' => '',
@@ -94,7 +90,7 @@ class AltTextProvider {
 		$media_url = wp_get_attachment_url( $attachment_id );
 		
 		if ( ! $media_url ) {
-			$this->logger->warning( 'Could not get media URL for attachment', [ 'attachment_id' => $attachment_id ] );
+			Logger::get_instance()->warning( 'Could not get media URL for attachment', [ 'attachment_id' => $attachment_id ] );
 			return [
 				'success' => false,
 				'alt_text' => '',
@@ -103,21 +99,19 @@ class AltTextProvider {
 		}
 
 		// Update status to processing.
-		$this->media_scanner->update_scan_data( $attachment_id, [
-			'ai_status' => 'processing',
-		] );
+		$this->media_scanner->update_scan_status( $attachment_id, 'processing' );
 
 		// Generate alt text via abstracted API service.
 		$result = $this->alt_text_api_service->generate_alt_text( $attachment_id, $media_url );
 
 		if ( $result['success'] ) {
+			$this->media_scanner->update_scan_status( $attachment_id, 'completed' );
 			$this->media_scanner->update_scan_data( $attachment_id, [
-				'ai_status' => 'completed',
 				'recommended_alt_text' => $result['alt_text'],
 			] );
 		} else {
+			$this->media_scanner->update_scan_status( $attachment_id, 'error' );
 			$this->media_scanner->update_scan_data( $attachment_id, [
-				'ai_status' => 'error',
 				'error_message' => $result['error'] ?? __( 'Unknown error', 'flux-ai-media-alt-creator' ),
 			] );
 		}
