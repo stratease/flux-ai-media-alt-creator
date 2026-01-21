@@ -4,7 +4,7 @@ Tags: media, alt text, ai, images, seo
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 8.0
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -128,6 +128,9 @@ The plugin supports all standard WordPress image formats, including JPEG, PNG, G
 
 == Changelog ==
 
+= 1.1.1 =
+* Added some escaping, fixed file access warnings, removed artifact file.
+
 = 1.1.0 =
 * Cleaned up a lot of infrastructure.
 * Setup for better integration with the Pro plugin.
@@ -141,16 +144,6 @@ The plugin supports all standard WordPress image formats, including JPEG, PNG, G
 * Improved Action Scheduler job cleanup on plugin deactivation
 * Performance improvements for large media library scanning
 
-= 1.0.0 =
-* Initial release
-* OpenAI Vision API integration for image analysis and alt text generation
-* Media file scanning functionality to identify images without alt text
-* AI alt text generation using OpenAI GPT-4o-mini Vision API
-* Bulk processing support with Action Scheduler
-* Usage tracking and cost estimation for OpenAI API calls
-* Review-before-apply workflow for alt text recommendations
-* React-based admin interface
-* Background processing support for large media libraries
 
 == Upgrade Notice ==
 

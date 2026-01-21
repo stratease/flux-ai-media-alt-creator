@@ -9,7 +9,6 @@
 namespace FluxAIMediaAltCreator\App\Http\Controllers;
 
 use FluxAIMediaAltCreator\App\Services\MediaScanner;
-use FluxAIMediaAltCreator\FluxPlugins\Common\Logger\Logger;
 use WP_REST_Request;
 use WP_REST_Response;
 

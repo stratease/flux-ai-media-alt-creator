@@ -5,7 +5,6 @@
  * @package FluxAIMediaAltCreator
  * @since 1.0.0
  */
-
 namespace FluxAIMediaAltCreator\App\Http\Controllers;
 
 use FluxAIMediaAltCreator\App\Services\UsageTracker;

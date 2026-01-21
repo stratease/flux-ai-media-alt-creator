@@ -5,11 +5,6 @@
  * @package FluxAIMediaAltCreator
  * @since 1.0.0
  */
-
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
-
 namespace FluxAIMediaAltCreator\App\Services;
 
 use FluxAIMediaAltCreator\FluxPlugins\Common\Logger\Logger;
@@ -252,8 +247,6 @@ class AsyncJobService {
 			do_action( 'flux_ai_alt_creator/async_job_service/process_alt_text_application_batch/after_apply', $media_id, $scan_data['recommended_alt_text'] );
 		}
 	}
-
-
 	/**
 	 * Cancel all Free plugin action scheduler actions.
 	 *

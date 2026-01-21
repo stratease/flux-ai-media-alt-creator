@@ -5,11 +5,6 @@
  * @package FluxAIMediaAltCreator
  * @since 1.0.0
  */
-
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
-
 namespace FluxAIMediaAltCreator\App\Http\Controllers;
 
 use FluxAIMediaAltCreator\App\Services\OpenAIService;

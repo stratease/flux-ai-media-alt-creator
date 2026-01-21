@@ -6,11 +6,13 @@
  * @since 1.0.0
  */
 
+// phpcs:disable WordPress.Security.EscapeOutput.DirectOutput -- ABSPATH check is placed after namespace declaration due to PHP syntax requirements (namespace must be first statement).
+namespace FluxAIMediaAltCreator\App\Http\Controllers;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
-namespace FluxAIMediaAltCreator\App\Http\Controllers;
+// phpcs:enable
 
 use FluxAIMediaAltCreator\App\Services\Settings;
 use FluxAIMediaAltCreator\FluxPlugins\Common\Services\MenuService;

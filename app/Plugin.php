@@ -6,7 +6,13 @@
  * @since 1.0.0
  */
 
+// phpcs:disable WordPress.Security.EscapeOutput.DirectOutput -- ABSPATH check is placed after namespace declaration due to PHP syntax requirements (namespace must be first statement).
 namespace FluxAIMediaAltCreator\App;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+// phpcs:enable
 
 use FluxAIMediaAltCreator\App\Services\Settings;
 use FluxAIMediaAltCreator\App\Services\MediaScanner;

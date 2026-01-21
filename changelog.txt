@@ -1,4 +1,6 @@
+= 1.1.1 =
+* Added some escaping, fixed file access warnings, removed artifact file.
+
 = 1.1.0 =
 * Cleaned up a lot of infrastructure.
 * Setup for better integration with the Pro plugin.
-
