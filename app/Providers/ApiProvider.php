@@ -70,6 +70,7 @@ class ApiProvider {
 	 * Constructor.
 	 *
 	 * @since 1.0.0
+	 * @since 1.1.0 Removed Logger parameter, controllers now use Logger::get_instance() directly via BaseController.
 	 * @param Settings        $settings Settings instance.
 	 * @param MediaScanner    $media_scanner Media scanner instance.
 	 * @param OpenAIService   $openai_service OpenAI service instance.

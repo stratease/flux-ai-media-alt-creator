@@ -6,6 +6,10 @@
  * @since 1.0.0
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 namespace FluxAIMediaAltCreator\App\Services;
 
 use FluxAIMediaAltCreator\FluxPlugins\Common\Logger\Logger;
@@ -28,7 +32,7 @@ class MediaScanner {
 	/**
 	 * Meta key for scan status.
 	 *
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 * @var string
 	 */
 	const SCAN_STATUS_META_KEY = '_flux_ai_alt_creator_scan_status';
@@ -37,6 +41,7 @@ class MediaScanner {
 	 * Constructor.
 	 *
 	 * @since 1.0.0
+	 * @since 1.1.0 Changed to private constructor for singleton pattern.
 	 */
 	private function __construct() {
 		// Private constructor for singleton pattern.
@@ -45,7 +50,7 @@ class MediaScanner {
 	/**
 	 * Get singleton instance.
 	 *
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 * @return MediaScanner Singleton instance.
 	 */
 	public static function get_instance() {
@@ -259,6 +264,7 @@ class MediaScanner {
 	 * Prepare media data for response.
 	 *
 	 * @since 1.0.0
+	 * @since 1.1.0 Changed from 'ai_status' to 'scan_status' using dedicated meta field.
 	 * @param \WP_Post $post Post object.
 	 * @return array Media data.
 	 */
@@ -297,7 +303,7 @@ class MediaScanner {
 	/**
 	 * Get scan status for a specific media file.
 	 *
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 * @param int $attachment_id Attachment ID.
 	 * @return string Scan status. Default 'pending'.
 	 */
@@ -312,7 +318,7 @@ class MediaScanner {
 	/**
 	 * Update scan status for a specific media file.
 	 *
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 * @param int    $attachment_id Attachment ID.
 	 * @param string $status Scan status.
 	 * @return void
@@ -325,6 +331,7 @@ class MediaScanner {
 	 * Get scan data for a specific media file.
 	 *
 	 * @since 1.0.0
+	 * @since 1.1.0 Updated to use separate scan_status meta field.
 	 * @param int $attachment_id Attachment ID.
 	 * @return array Scan data.
 	 */
@@ -353,6 +360,7 @@ class MediaScanner {
 	 * Update scan data for a specific media file.
 	 *
 	 * @since 1.0.0
+	 * @since 1.1.0 Updated to handle scan_status separately from scan_data.
 	 * @param int   $attachment_id Attachment ID.
 	 * @param array $scan_data Scan data to update.
 	 * @return void
@@ -381,6 +389,7 @@ class MediaScanner {
 	 * MIME types are provided via the flux_ai_alt_creator/media_scanner/get_default_mime_types hook.
 	 *
 	 * @since 1.0.0
+	 * @since 1.1.0 Changed to public static method.
 	 * @return array Array of image MIME types.
 	 */
 	public static function get_default_image_mime_types() {

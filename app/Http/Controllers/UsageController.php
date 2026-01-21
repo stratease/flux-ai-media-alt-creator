@@ -32,6 +32,7 @@ class UsageController extends BaseController {
 	 * Constructor.
 	 *
 	 * @since 1.0.0
+	 * @since 1.1.0 Removed Logger parameter, now uses Logger::get_instance() directly via BaseController.
 	 * @param UsageTracker $usage_tracker Usage tracker instance.
 	 */
 	public function __construct( UsageTracker $usage_tracker ) {

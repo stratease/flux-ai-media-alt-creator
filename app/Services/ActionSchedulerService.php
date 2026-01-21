@@ -9,6 +9,10 @@
  * @since 1.0.0
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 namespace FluxAIMediaAltCreator\App\Services;
 
 use FluxAIMediaAltCreator\FluxPlugins\Common\Logger\Logger;
@@ -24,6 +28,7 @@ class ActionSchedulerService {
 	 * Constructor.
 	 *
 	 * @since 1.0.0
+	 * @since 1.1.0 Removed dependency injection parameters, now uses Logger::get_instance() directly.
 	 */
 	public function __construct() {
 		// Constructor for Action Scheduler service.
@@ -36,6 +41,7 @@ class ActionSchedulerService {
 	 * Action Scheduler functions are global, so we just need to ensure the library is loaded.
 	 *
 	 * @since 1.0.0
+	 * @since 1.1.0 Removed register_action_hooks() call - hooks are now registered in AltTextProvider.
 	 * @return void
 	 */
 	public function init() {

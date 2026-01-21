@@ -33,6 +33,7 @@ class OptionsController extends BaseController {
 	 * Constructor.
 	 *
 	 * @since 1.0.0
+	 * @since 1.1.0 Removed Logger parameter, now uses Logger::get_instance() directly via BaseController.
 	 * @param Settings $settings Settings instance.
 	 */
 	public function __construct( Settings $settings ) {

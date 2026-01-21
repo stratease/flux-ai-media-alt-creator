@@ -6,6 +6,10 @@
  * @since 1.0.0
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 namespace FluxAIMediaAltCreator\App\Http\Controllers;
 
 use FluxAIMediaAltCreator\App\Services\Settings;
@@ -116,6 +120,11 @@ class AdminController {
 
 	/**
 	 * Enqueue admin scripts and styles.
+	 *
+	 * All scripts are properly enqueued using WordPress standards:
+	 * - wp_enqueue_script() for JavaScript files
+	 * - wp_localize_script() for passing PHP data to JavaScript
+	 * - wp_enqueue_style() for CSS files
 	 *
 	 * @since 1.0.0
 	 * @param string $hook Current admin page hook.

@@ -6,6 +6,10 @@
  * @since 1.0.0
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 namespace FluxAIMediaAltCreator\App\Services;
 
 use FluxAIMediaAltCreator\FluxPlugins\Common\Logger\Logger;
@@ -31,6 +35,7 @@ class AsyncJobService {
 	 * Constructor.
 	 *
 	 * @since 1.0.0
+	 * @since 1.1.0 Changed to private constructor for singleton pattern, removed dependency injection.
 	 */
 	private function __construct() {
 		// Private constructor for singleton pattern.
@@ -39,7 +44,7 @@ class AsyncJobService {
 	/**
 	 * Get singleton instance.
 	 *
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 * @return AsyncJobService Singleton instance.
 	 */
 	public static function get_instance() {
@@ -53,6 +58,7 @@ class AsyncJobService {
 	 * Schedule alt text generation for multiple media files.
 	 *
 	 * @since 1.0.0
+	 * @since 1.1.0 Added type hints for parameters, simplified Action Scheduler argument format.
 	 * @param array $media_ids Array of media IDs.
 	 * @param int   $batch_size Batch size for processing.
 	 * @return int|false Number of jobs scheduled or false on failure.
@@ -140,6 +146,7 @@ class AsyncJobService {
 	 * Process alt text generation batch (called by Action Scheduler).
 	 *
 	 * @since 1.0.0
+	 * @since 1.1.0 Changed argument format - now receives media_ids array directly instead of wrapped in args array.
 	 * @param array $media_ids Array of media IDs.
 	 * @return void
 	 */
@@ -202,6 +209,7 @@ class AsyncJobService {
 	 * Process alt text application batch (called by Action Scheduler).
 	 *
 	 * @since 1.0.0
+	 * @since 1.1.0 Changed argument format - now receives media_ids array directly instead of wrapped in args array.
 	 * @param array $media_ids Array of media IDs.
 	 * @return void
 	 */

@@ -1,5 +1,5 @@
 === Flux AI Media Alt Creator by Flux Plugins ===
-Contributors: fluxplugins
+Contributors: edaniels
 Tags: media, alt text, ai, images, seo
 Requires at least: 5.8
 Tested up to: 6.9
@@ -205,3 +205,7 @@ Flux AI Media Alt Creator integrates with OpenAI's Vision API to analyze images 
 * OpenAI API key stored in WordPress options for authentication
 * No automatic background transmission - data only sent when you explicitly request alt text generation
 * Full compliance with WordPress.org guidelines and privacy regulations
+
+== Developer Notes ==
+
+This plugin follows WordPress coding standards and community best practices. For detailed information on contributing, development setup, coding standards, and architecture, please see the [Contributing Guide](https://github.com/stratease/flux-ai-media-alt-creator/blob/master/CONTRIBUTING.md) on GitHub.

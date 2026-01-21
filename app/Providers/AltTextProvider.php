@@ -40,6 +40,7 @@ class AltTextProvider {
 	 * Constructor.
 	 *
 	 * @since 1.0.0
+	 * @since 1.1.0 Removed Logger parameter, now uses Logger::get_instance() directly.
 	 * @param AltTextApiService $alt_text_api_service Alt text API service instance.
 	 * @param MediaScanner      $media_scanner Media scanner instance.
 	 */
@@ -52,6 +53,7 @@ class AltTextProvider {
 	 * Initialize the provider.
 	 *
 	 * @since 1.0.0
+	 * @since 1.1.0 Added Action Scheduler hook registrations for batch processing.
 	 * @return void
 	 */
 	public function init() {
@@ -99,17 +101,20 @@ class AltTextProvider {
 		}
 
 		// Update status to processing.
+		// @since 1.1.0 Changed from update_scan_data with 'ai_status' to update_scan_status.
 		$this->media_scanner->update_scan_status( $attachment_id, 'processing' );
 
 		// Generate alt text via abstracted API service.
 		$result = $this->alt_text_api_service->generate_alt_text( $attachment_id, $media_url );
 
 		if ( $result['success'] ) {
+			// @since 1.1.0 Changed from update_scan_data with 'ai_status' to update_scan_status.
 			$this->media_scanner->update_scan_status( $attachment_id, 'completed' );
 			$this->media_scanner->update_scan_data( $attachment_id, [
 				'recommended_alt_text' => $result['alt_text'],
 			] );
 		} else {
+			// @since 1.1.0 Changed from update_scan_data with 'ai_status' to update_scan_status.
 			$this->media_scanner->update_scan_status( $attachment_id, 'error' );
 			$this->media_scanner->update_scan_data( $attachment_id, [
 				'error_message' => $result['error'] ?? __( 'Unknown error', 'flux-ai-media-alt-creator' ),

@@ -11,7 +11,7 @@
  * Text Domain: flux-ai-media-alt-creator
  * Domain Path: /languages
  * Requires at least: 5.8
- * Tested up to: 6.8
+ * Tested up to: 6.9
  * Requires PHP: 8.0
  *
  * Copyright 2025 Flux Plugins
@@ -64,7 +64,7 @@ function flux_ai_media_alt_creator_php_version_notice() {
 			printf(
 				/* translators: 1: Current PHP version, 2: Required PHP version */
 				esc_html__( 'Flux AI Media Alt Creator requires PHP %2$s or higher. You are running PHP %1$s.', 'flux-ai-media-alt-creator' ),
-				PHP_VERSION,
+				esc_html( PHP_VERSION ),
 				'8.0'
 			);
 			?>

@@ -6,6 +6,10 @@
  * @since 1.0.0
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 namespace FluxAIMediaAltCreator\App\Services;
 
 use FluxAIMediaAltCreator\FluxPlugins\Common\Logger\Logger;
@@ -37,6 +41,7 @@ class OpenAIApiClient {
 	 * Constructor.
 	 *
 	 * @since 1.0.0
+	 * @since 1.1.0 Removed Logger parameter, now uses Logger::get_instance() directly.
 	 * @param string $api_key OpenAI API key.
 	 */
 	public function __construct( $api_key ) {

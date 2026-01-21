@@ -6,6 +6,10 @@
  * @since 1.0.0
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 namespace FluxAIMediaAltCreator\App\Http\Controllers;
 
 use FluxAIMediaAltCreator\App\Services\OpenAIService;
@@ -50,6 +54,7 @@ class AltTextController extends BaseController {
 	 * Constructor.
 	 *
 	 * @since 1.0.0
+	 * @since 1.1.0 Removed Logger parameter, now uses Logger::get_instance() directly via BaseController.
 	 * @param OpenAIService  $openai_service OpenAI service instance.
 	 * @param MediaScanner   $media_scanner Media scanner instance.
 	 * @param AsyncJobService $async_job_service Async job service instance.
@@ -137,6 +142,7 @@ class AltTextController extends BaseController {
 	 * Generate AI alt text for selected media files.
 	 *
 	 * @since 1.0.0
+	 * @since 1.1.0 Changed from 'ai_status' to 'scan_status' using dedicated meta field and update_scan_status() method.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */

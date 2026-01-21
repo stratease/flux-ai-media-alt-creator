@@ -10,6 +10,10 @@
  * @since 1.0.0
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 namespace FluxAIMediaAltCreator\App\Services;
 
 use FluxAIMediaAltCreator\FluxPlugins\Common\Logger\Logger;
@@ -34,6 +38,7 @@ class AltTextApiService {
 	 * Constructor.
 	 *
 	 * @since 1.0.0
+	 * @since 1.1.0 Changed to private constructor for singleton pattern, removed dependency injection.
 	 */
 	private function __construct() {
 		// Private constructor for singleton pattern.
@@ -42,7 +47,7 @@ class AltTextApiService {
 	/**
 	 * Get singleton instance.
 	 *
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 * @return AltTextApiService Singleton instance.
 	 */
 	public static function get_instance() {

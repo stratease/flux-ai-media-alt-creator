@@ -6,6 +6,10 @@
  * @since 1.0.0
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 namespace FluxAIMediaAltCreator\App\Http\Controllers;
 
 use FluxAIMediaAltCreator\FluxPlugins\Common\Logger\Logger;
@@ -24,6 +28,7 @@ abstract class BaseController extends WP_REST_Controller {
 	 * Constructor.
 	 *
 	 * @since 1.0.0
+	 * @since 1.1.0 Removed Logger parameter, now uses Logger::get_instance() directly.
 	 */
 	public function __construct() {
 		// Base controller constructor.

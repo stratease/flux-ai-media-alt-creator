@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/stratease/flux-plugins-common.git",
-                "reference": "401a46d1cd3e2ebc91afe3c38b133e71994518e0"
+                "reference": "aa6c6e8877fe64257a8a39a34fe1f5f035cb6290"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/stratease/flux-plugins-common/zipball/401a46d1cd3e2ebc91afe3c38b133e71994518e0",
-                "reference": "401a46d1cd3e2ebc91afe3c38b133e71994518e0",
+                "url": "https://api.github.com/repos/stratease/flux-plugins-common/zipball/aa6c6e8877fe64257a8a39a34fe1f5f035cb6290",
+                "reference": "aa6c6e8877fe64257a8a39a34fe1f5f035cb6290",
                 "shasum": ""
             },
             "require": {
@@ -61,7 +61,7 @@
                 "source": "https://github.com/stratease/flux-plugins-common/tree/master",
                 "issues": "https://github.com/stratease/flux-plugins-common/issues"
             },
-            "time": "2026-01-20T16:08:58+00:00"
+            "time": "2026-01-21T13:11:04+00:00"
         },
         {
             "name": "woocommerce/action-scheduler",
