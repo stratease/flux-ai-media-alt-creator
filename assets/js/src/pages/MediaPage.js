@@ -301,25 +301,31 @@ const MediaPage = () => {
       </Grid>
 
       {/* Action Buttons with Selection Indicator */}
-      <Stack direction="row" spacing={2} sx={{ mb: 2, alignItems: 'center' }}>
-        <Button
-          variant="contained"
-          onClick={handleGenerateAltText}
-          disabled={selectedMedia.size === 0 || generateMutation.isPending}
-        >
-          {generateMutation.isPending ? <CircularProgress size={20} /> : __('Generate AI Alt Text', 'flux-ai-media-alt-creator')}
-        </Button>
-        <Button
-          variant="outlined"
-          onClick={handleApplyAltText}
-          disabled={selectedMedia.size === 0 || applyMutation.isPending}
-        >
-          {applyMutation.isPending ? <CircularProgress size={20} /> : __('Apply Alt Text', 'flux-ai-media-alt-creator')}
-        </Button>
-        <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
-          {selectedMedia.size} {__('of', 'flux-ai-media-alt-creator')} {data?.total || 0} {__('selected', 'flux-ai-media-alt-creator')}
-        </Typography>
-      </Stack>
+      <Grid container spacing={2} sx={{ mb: 2 }} alignItems="center">
+        <Grid item xs="auto">
+          <Button
+            variant="contained"
+            onClick={handleGenerateAltText}
+            disabled={selectedMedia.size === 0 || generateMutation.isPending}
+          >
+            {generateMutation.isPending ? <CircularProgress size={20} /> : __('Generate AI Alt Text', 'flux-ai-media-alt-creator')}
+          </Button>
+        </Grid>
+        <Grid item xs="auto">
+          <Button
+            variant="outlined"
+            onClick={handleApplyAltText}
+            disabled={selectedMedia.size === 0 || applyMutation.isPending}
+          >
+            {applyMutation.isPending ? <CircularProgress size={20} /> : __('Apply Alt Text', 'flux-ai-media-alt-creator')}
+          </Button>
+        </Grid>
+        <Grid item xs>
+          <Typography variant="body2" color="text.secondary">
+            {selectedMedia.size} {__('of', 'flux-ai-media-alt-creator')} {data?.total || 0} {__('selected', 'flux-ai-media-alt-creator')}
+          </Typography>
+        </Grid>
+      </Grid>
 
       {isLoading ? (
         <Table size="small">

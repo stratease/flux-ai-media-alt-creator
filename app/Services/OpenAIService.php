@@ -151,6 +151,11 @@ class OpenAIService {
 		$alt_text = $response['content'] ?? '';
 		$alt_text = trim( $alt_text );
 		
+		// Remove surrounding double quotes if present (safety measure in case quotes weren't stripped earlier).
+		if ( strlen( $alt_text ) >= 2 && $alt_text[0] === '"' && $alt_text[ strlen( $alt_text ) - 1 ] === '"' ) {
+			$alt_text = substr( $alt_text, 1, -1 );
+		}
+		
 		// Extract usage data.
 		$usage = $response['usage'] ?? null;
 		$tokens_used = $usage ? ( $usage['total_tokens'] ?? 0 ) : 0;

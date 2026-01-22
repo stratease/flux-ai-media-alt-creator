@@ -306,6 +306,11 @@ class OpenAIApiClient {
 		$content = '';
 		if ( isset( $response_data['choices'][0]['message']['content'] ) ) {
 			$content = trim( $response_data['choices'][0]['message']['content'] );
+			
+			// Remove surrounding double quotes if present (OpenAI sometimes returns quoted strings).
+			if ( strlen( $content ) >= 2 && $content[0] === '"' && $content[ strlen( $content ) - 1 ] === '"' ) {
+				$content = substr( $content, 1, -1 );
+			}
 		}
 
 		// Extract usage data.

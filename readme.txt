@@ -4,7 +4,7 @@ Tags: media, alt text, ai, images, seo
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 8.0
-Stable tag: 1.1.1
+Stable tag: 1.1.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -128,21 +128,15 @@ The plugin supports all standard WordPress image formats, including JPEG, PNG, G
 
 == Changelog ==
 
+= 1.1.2 =
+* Fixed extra quotes around Open AI response.[D[D[D[D[D[D[D[D[D[D[D[D[D
+
 = 1.1.1 =
 * Added some escaping, fixed file access warnings, removed artifact file.
 
 = 1.1.0 =
 * Cleaned up a lot of infrastructure.
 * Setup for better integration with the Pro plugin.
-
-= 1.1.0 =
-* Improved batch processing efficiency with optimized database queries
-* Renamed scan status field from `ai_status` to `scan_status` for clarity and consistency
-* Enhanced meta field handling with dedicated scan status meta field
-* Added action hook for Pro plugin integration after batch generation completion
-* Separated generation and application logic for better extensibility
-* Improved Action Scheduler job cleanup on plugin deactivation
-* Performance improvements for large media library scanning
 
 
 == Upgrade Notice ==

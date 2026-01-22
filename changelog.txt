@@ -1,3 +1,6 @@
+= 1.1.2 =
+* Fixed extra quotes around Open AI response.[D[D[D[D[D[D[D[D[D[D[D[D[D
+
 = 1.1.1 =
 * Added some escaping, fixed file access warnings, removed artifact file.
 

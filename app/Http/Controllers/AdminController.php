@@ -155,6 +155,18 @@ class AdminController {
 		// Get registered tabs via filter.
 		$registered_tabs = apply_filters( 'flux_ai_alt_creator/admin_controller/get_tabs', [] );
 
+		// Check if Pro plugin is active - check both constant and plugin activation status.
+		$is_pro_active = false;
+		if ( defined( 'FLUX_AI_MEDIA_ALT_CREATOR_PRO_VERSION' ) ) {
+			$is_pro_active = true;
+		} else {
+			// Fallback: check if Pro plugin file is active.
+			if ( ! function_exists( 'is_plugin_active' ) ) {
+				require_once ABSPATH . 'wp-admin/includes/plugin.php';
+			}
+			$is_pro_active = is_plugin_active( 'flux-ai-media-alt-creator-pro/flux-ai-media-alt-creator-pro.php' );
+		}
+
 		// Localize script with WordPress data.
 		wp_localize_script( 'flux-ai-media-alt-creator-admin', 'fluxAIMediaAltCreatorAdmin', [
 			'apiUrl' => rest_url( 'flux-ai-media-alt-creator/v1/' ),
@@ -162,7 +174,7 @@ class AdminController {
 			'adminUrl' => admin_url(),
 			'pluginUrl' => FLUX_AI_MEDIA_ALT_CREATOR_PLUGIN_URL,
 			'tabs' => $registered_tabs,
-			'isProActive' => defined( 'FLUX_AI_MEDIA_ALT_CREATOR_PRO_VERSION' ),
+			'isProActive' => $is_pro_active,
 		] );
 
 		// Enqueue WordPress admin styles.
