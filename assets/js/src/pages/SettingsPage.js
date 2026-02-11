@@ -9,15 +9,12 @@ import {
   FormHelperText,
   Skeleton,
   Collapse,
-  Card,
-  CardContent,
-  Divider,
   Link,
   Grid,
 } from '@mui/material';
-import { Star, CheckCircle } from '@mui/icons-material';
 import { __ } from '@wordpress/i18n';
 import { useOptions, useUpdateOptions, useFieldVisibility } from '../hooks/useOptions';
+import { UpgradeToProCard } from '../components';
 
 /**
  * Settings page component
@@ -122,77 +119,11 @@ const SettingsPage = () => {
         </Grid>
 
         {/* Pro Version Upsell Column - 6 columns on large screens, 12 on mobile - Hidden when Pro is active */}
-        <Grid item xs={12} lg={6} sx={{ display: isProActive ? 'none' : 'block' }}>
-          <Card
-            variant="outlined"
-            sx={{
-              border: '1px solid',
-              borderColor: 'primary.main',
-              backgroundColor: 'action.hover',
-              height: '100%',
-            }}
-          >
-            <CardContent>
-              <Stack spacing={2}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Star sx={{ color: 'primary.main' }} />
-                  <Typography variant="h6" component="h3">
-                    {__('Upgrade to Pro', 'flux-ai-media-alt-creator')}
-                  </Typography>
-                </Box>
-                
-                <Typography variant="body2" color="text.secondary">
-                  {__('Get more powerful features with Flux AI Media Alt Creator Pro:', 'flux-ai-media-alt-creator')}
-                </Typography>
-
-                <Stack spacing={1}>
-                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                    <CheckCircle sx={{ fontSize: '1.2rem', color: 'success.main', mt: 0.25 }} />
-                    <Typography variant="body2">
-                      {__('Additional AI media meta updates (Alt Text, Title, Description, Caption and more...)', 'flux-ai-media-alt-creator')}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                    <CheckCircle sx={{ fontSize: '1.2rem', color: 'success.main', mt: 0.25 }} />
-                    <Typography variant="body2">
-                      {__('Recurring automated processing of existing media', 'flux-ai-media-alt-creator')}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                    <CheckCircle sx={{ fontSize: '1.2rem', color: 'success.main', mt: 0.25 }} />
-                    <Typography variant="body2">
-                      {__('Access to all Flux Suite premium plugins', 'flux-ai-media-alt-creator')}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                    <CheckCircle sx={{ fontSize: '1.2rem', color: 'success.main', mt: 0.25 }} />
-                    <Typography variant="body2">
-                      {__('No OpenAI API key required - works with a single Flux Suite license', 'flux-ai-media-alt-creator')}
-                    </Typography>
-                  </Box>
-                </Stack>
-
-                <Divider />
-
-                <Button
-                  variant="contained"
-                  color="primary"
-                  href="https://fluxplugins.com/ai-media-alt-creator-pro/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  fullWidth
-                  sx={{ fontWeight: 600 }}
-                >
-                  {__('Learn More About Pro', 'flux-ai-media-alt-creator')}
-                </Button>
-
-                <Typography variant="caption" color="text.secondary" align="center">
-                  {__('Requires Flux Suite license', 'flux-ai-media-alt-creator')}
-                </Typography>
-              </Stack>
-            </CardContent>
-          </Card>
-        </Grid>
+        {!isProActive && (
+          <Grid item xs={12} lg={6}>
+            <UpgradeToProCard variant="settings" showCaption />
+          </Grid>
+        )}
       </Grid>
     </Box>
   );

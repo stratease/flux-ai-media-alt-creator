@@ -52,7 +52,11 @@
             "@phpstan",
             "@test"
         ],
+        "copy-common-assets": [
+            "sh -c 'if [ -d vendor/stratease/flux-plugins-common/src/assets ]; then mkdir -p src/assets/common && cp -r vendor/stratease/flux-plugins-common/src/assets/* src/assets/common/ && echo \"✅ Copied common library assets to src/assets/common/\"; else echo \"⚠️  Common library assets not found in vendor/\"; fi'"
+        ],
         "prefix-namespaces": [
+            "@copy-common-assets",
             "sh -c 'test -f ./bin/strauss.phar || curl -o bin/strauss.phar -L -C - https://github.com/BrianHenryIE/strauss/releases/latest/download/strauss.phar'",
             "@php bin/strauss.phar",
             "@composer dump-autoload",

@@ -142,6 +142,7 @@ class AsyncJobService {
 	 *
 	 * @since 1.0.0
 	 * @since 1.1.0 Changed argument format - now receives media_ids array directly instead of wrapped in args array.
+	 * @since 1.2.0 Simplified - scan status and scan data updates are now handled by AltTextApiService.
 	 * @param array $media_ids Array of media IDs.
 	 * @return void
 	 */
@@ -150,38 +151,15 @@ class AsyncJobService {
 			return;
 		}
 
+		$alt_text_api_service = AltTextApiService::get_instance();
 		$successful_ids = [];
 
 		foreach ( $media_ids as $media_id ) {
-			// Get media URL.
-			$media_url = wp_get_attachment_url( $media_id );
-
-			if ( ! $media_url ) {
-				Logger::get_instance()->warning( 'Could not get media URL', [ 'media_id' => $media_id ] );
-				MediaScanner::get_instance()->update_scan_status( $media_id, 'error' );
-				MediaScanner::get_instance()->update_scan_data( $media_id, [
-					'error_message' => __( 'Could not get media URL', 'flux-ai-media-alt-creator' ),
-				] );
-				continue;
-			}
-
-			// Update status to processing.
-			MediaScanner::get_instance()->update_scan_status( $media_id, 'processing' );
-
-			// Generate alt text via abstracted API service.
-			$result = AltTextApiService::get_instance()->generate_alt_text( $media_id, $media_url );
+			// Generate alt text via abstracted API service (handles status and scan data updates).
+			$result = $alt_text_api_service->generate_alt_text( $media_id );
 
 			if ( $result['success'] ) {
-				MediaScanner::get_instance()->update_scan_status( $media_id, 'completed' );
-				MediaScanner::get_instance()->update_scan_data( $media_id, [
-					'recommended_alt_text' => $result['alt_text'],
-				] );
 				$successful_ids[] = $media_id;
-			} else {
-				MediaScanner::get_instance()->update_scan_status( $media_id, 'error' );
-				MediaScanner::get_instance()->update_scan_data( $media_id, [
-					'error_message' => $result['error'] ?? __( 'Unknown error', 'flux-ai-media-alt-creator' ),
-				] );
 			}
 		}
 
@@ -205,6 +183,7 @@ class AsyncJobService {
 	 *
 	 * @since 1.0.0
 	 * @since 1.1.0 Changed argument format - now receives media_ids array directly instead of wrapped in args array.
+	 * @since 1.2.0 Updated to use AltTextApiService for abstracted application with hooks.
 	 * @param array $media_ids Array of media IDs.
 	 * @return void
 	 */
@@ -212,6 +191,8 @@ class AsyncJobService {
 		if ( empty( $media_ids ) ) {
 			return;
 		}
+
+		$alt_text_api_service = AltTextApiService::get_instance();
 
 		foreach ( $media_ids as $media_id ) {
 			$scan_data = MediaScanner::get_instance()->get_scan_data( $media_id );
@@ -229,13 +210,8 @@ class AsyncJobService {
 			 */
 			do_action( 'flux_ai_alt_creator/async_job_service/process_alt_text_application_batch/before_apply', $media_id, $scan_data['recommended_alt_text'] );
 
-			// Apply alt text.
-			update_post_meta( $media_id, '_wp_attachment_image_alt', $scan_data['recommended_alt_text'] );
-
-			// Mark as applied.
-			MediaScanner::get_instance()->update_scan_data( $media_id, [
-				'applied' => true,
-			] );
+			// Apply alt text via abstracted service (handles meta update and scan data updates).
+			$alt_text_api_service->apply_alt_text( $media_id, $scan_data['recommended_alt_text'] );
 
 			/**
 			 * Fires after applying alt text.

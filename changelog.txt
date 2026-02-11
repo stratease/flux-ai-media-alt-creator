@@ -1,3 +1,12 @@
+= 1.2.1 =
+* Fixed admin notice display positioning.
+* Refactored to a factory service for alt text generators.
+* Some UI clean up and optimization for new users.
+
+= 1.2.0 =
+* Updated some architecture, cleaned up for better integration.
+* Fixed issue with selected media assets would not utilize Pro plugin.[D[D[D[D[D[D[D[D[D[D[D[D
+
 = 1.1.2 =
 * Fixed extra quotes around Open AI response.[D[D[D[D[D[D[D[D[D[D[D[D[D
 

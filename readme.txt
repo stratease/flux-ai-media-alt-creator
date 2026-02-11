@@ -4,63 +4,45 @@ Tags: media, alt text, ai, images, seo
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 8.0
-Stable tag: 1.1.2
+Stable tag: 1.2.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Automatically generate AI-powered alt text for your WordPress media using OpenAI's Vision API. Improve accessibility, SEO, and WCAG compliance.
+Generate AI-powered alt text for your WordPress media using OpenAI's Vision API. Process batches of images at once. Improve accessibility, SEO, and WCAG compliance. 
 
 == Description ==
 
-### The Complete AI-Powered Alt Text Solution for WordPress
+### AI-Powered Alt Text for WordPress Media
 
-Flux AI Media Alt Creator automatically generates descriptive, SEO-friendly alt text for your WordPress media files using OpenAI's GPT-4o-mini Vision API. Transform accessibility compliance from a time-consuming task into an automated process while improving your site's SEO performance.
+Flux AI Media Alt Creator generates descriptive, SEO-friendly alt text for your WordPress media using OpenAI's GPT-4o-mini Vision API. Select multiple images, process them in a batch, then review the AI-generated recommendations. Edit any suggestion before saving, or apply as-is with one click. Transform accessibility compliance from a time-consuming task into a streamlined workflow. Bring your own OpenAI API key for the biggest cost savings.
+
+**Batch processing:** Select multiple media files and generate alt text for all of them at once. Results appear as recommendations you can edit or apply.
 
 **This plugin integrates with OpenAI's Vision API** to analyze your images and generate accurate, descriptive alt text. When you generate alt text, image data is sent to OpenAI's servers for processing using their GPT-4o-mini Vision API endpoint, which analyzes image content and generates descriptive text based on what it sees in your images.
 
 **OpenAI API key required.** The plugin requires an OpenAI API key to function. Image data will be sent to OpenAI's servers for processing when generating alt text. You can [get an OpenAI API key here](https://platform.openai.com/api-keys) (signup required). Please review OpenAI's [Privacy Policy](https://openai.com/policies/privacy-policy) and [Terms of Use](https://openai.com/policies/terms-of-use) before using this plugin.
 
-Looking for automated alt text generation without managing API keys? Check out [Flux AI Media Alt Creator Pro](https://fluxplugins.com/ai-media-alt-creator-pro/), which includes automation features and only requires a Flux Suite license - no OpenAI API key needed.
+Looking for automated alt text generation without managing OpenAI API keys? Check out [Flux AI Media Alt Creator Pro](https://fluxplugins.com/ai-media-alt-creator-pro/), which includes automation features and only requires a Flux Suite license - no OpenAI API key needed.
 
 ### Professional-Grade AI Alt Text Generation
 
-Flux AI Media Alt Creator helps you meet WCAG accessibility guidelines and improve SEO by automatically generating descriptive alt text for your media files. The plugin uses OpenAI's advanced Vision API to analyze image content and create accurate, context-aware descriptions.
+**Key features:**
 
-**Key Features:**
+* **Batch processing** – Process multiple images at once with background job processing
+* **Edit before apply** – Review, edit, or apply each recommendation as-is
+* **Smart scanning** – Identify media files missing alt text across your library
+* **OpenAI Vision API** – Uses GPT-4o-mini for accurate, context-aware descriptions
 
-* **OpenAI Vision API Integration** – Uses OpenAI's GPT-4o-mini Vision API to analyze image content and generate accurate alt text based on what the AI sees in your images
-* **Intelligent Image Analysis** – The plugin sends image data to OpenAI's Vision API endpoint, which processes and analyzes visual content to create descriptive, context-aware alt text
-* **Bulk Processing** – Process multiple media items with background job processing for efficient large-scale operations
-* **Review Before Apply** – Review AI-generated alt text recommendations before applying them to your media files
-* **Smart Scanning** – Quickly identify media files missing alt text across your entire media library
+**Perfect for:** Site owners improving accessibility, content creators with large media libraries, SEO-focused sites, and anyone meeting WCAG guidelines.
 
-**Perfect for:**
+### How it works
 
-* Site owners needing to improve accessibility compliance
-* Content creators managing large media libraries
-* SEO-focused websites wanting optimized alt text
-* Anyone seeking to meet WCAG accessibility guidelines
+1. **Scan** – Identify images without alt text in your media library
+2. **Select & generate** – Choose one or many images; the plugin sends them to OpenAI's Vision API for analysis
+3. **Review** – See AI-generated alt text for each image
+4. **Edit or apply** – Adjust any recommendation, then apply individually or in bulk
 
-Ready to automate your alt text generation? Install Flux AI Media Alt Creator today and let AI handle the heavy lifting.
-
-### How OpenAI Vision API Integration Works
-
-Flux AI Media Alt Creator uses **OpenAI's Vision API (GPT-4o-mini)** to analyze your images and generate descriptive alt text. Here's how it works:
-
-1. **Image Upload/Selection** – When you select media files for alt text generation, the plugin retrieves the image URLs from your WordPress media library
-2. **OpenAI Vision API Analysis** – Image data is sent to OpenAI's Vision API endpoint, which uses GPT-4o-mini to analyze the visual content of your images
-3. **AI-Powered Generation** – The Vision API processes the image, identifies objects, scenes, text, and context, then generates a descriptive alt text recommendation
-4. **Review & Apply** – You review the AI-generated recommendations and can apply them individually or in bulk to your media files
-
-The plugin uses OpenAI's `/chat/completions` endpoint with the GPT-4o-mini model, configured specifically for vision content analysis. This ensures accurate, context-aware alt text generation that improves both accessibility and SEO.
-
-### Affordable AI-Powered Accessibility
-
-Flux AI Media Alt Creator uses OpenAI's GPT-4o-mini model, which is very affordable for alt text generation. Pricing is usage-based and displayed in real-time in the plugin's Overview tab. You'll be charged by OpenAI based on their pricing for the GPT-4o-mini Vision API.
-
-**Cost-effective:** The GPT-4o-mini model offers excellent value for alt text generation, making it practical to process large media libraries without breaking the budget.
-
-**Usage Tracking:** The plugin tracks API usage and cost estimates for your information only. This tracking is purely informational and does not limit or restrict any features or functionality - you can generate alt text without any usage-based restrictions or quotas enforced by the plugin.
+Pricing is usage-based and shown in the Overview tab. The GPT-4o-mini model is cost-effective for large libraries. Usage tracking is informational only—no feature restrictions.
 
 == Frequently Asked Questions ==
 
@@ -72,20 +54,11 @@ If you prefer not to manage API keys, consider [Flux AI Media Alt Creator Pro](h
 
 = How does the OpenAI integration work? =
 
-The plugin uses OpenAI's Vision API (GPT-4o-mini) to analyze your images. When you generate alt text:
-
-1. The plugin sends image data to OpenAI's Vision API endpoint
-2. OpenAI's GPT-4o-mini model analyzes the visual content of your images
-3. The AI generates descriptive, context-aware alt text based on what it sees
-4. Recommendations are displayed for your review before applying
-
-This integration requires an OpenAI API key and image data will be transmitted to OpenAI's servers for processing. Please review OpenAI's [Privacy Policy](https://openai.com/policies/privacy-policy) and [Terms of Use](https://openai.com/policies/terms-of-use).
+The plugin sends image data to OpenAI's Vision API (GPT-4o-mini) for analysis. The AI generates alt text recommendations, which you can edit or apply as-is. Image data is transmitted to OpenAI's servers during generation. Review OpenAI's [Privacy Policy](https://openai.com/policies/privacy-policy) and [Terms of Use](https://openai.com/policies/terms-of-use).
 
 = Will my images be sent to a third party? =
 
-Yes. When you generate alt text using this plugin, image data is sent to OpenAI's servers for processing via their Vision API. This is necessary for the AI to analyze your images and generate descriptive alt text. The plugin uses OpenAI's Vision API endpoint to process and analyze visual content.
-
-Please review OpenAI's [Privacy Policy](https://openai.com/policies/privacy-policy) and [Terms of Use](https://openai.com/policies/terms-of-use) before using this plugin. Data is only sent when you explicitly request alt text generation - the plugin does not automatically send images in the background.
+Yes. When you generate alt text, image data is sent to OpenAI's servers via their Vision API for analysis. Data is only sent when you explicitly request generation—no automatic background transmission. Review OpenAI's [Privacy Policy](https://openai.com/policies/privacy-policy) and [Terms of Use](https://openai.com/policies/terms-of-use).
 
 = How much does it cost? =
 
@@ -93,17 +66,13 @@ The plugin uses OpenAI's GPT-4o-mini Vision API, which is very affordable. Prici
 
 **Important:** The plugin's usage tracking and cost estimation features are provided for your information only. They do not limit or restrict any features or functionality - you can use all plugin features without any usage-based restrictions or quotas enforced by the plugin.
 
-= Can I process media files in the background? =
-
-Yes! The plugin supports background processing using Action Scheduler for batch operations. This allows you to queue large numbers of media files for processing without blocking your admin interface.
-
 = Is there a Pro version with automation? =
 
 Yes! [Flux AI Media Alt Creator Pro](https://fluxplugins.com/ai-media-alt-creator-pro/) includes automated alt text generation features and doesn't require an OpenAI API key - all you need is a Flux Suite license. The Pro version automatically processes new media uploads and can schedule recurring processing of existing media. [Learn more about Flux Suite licenses here](https://fluxplugins.com/).
 
 = Does this work with existing images? =
 
-Yes! Flux AI Media Alt Creator can scan your entire media library and identify images without alt text. Once you've selected which images to process (individual files or multiple selections), the plugin processes them in batches via Action Scheduler for efficient background processing. Each batch processes a default of 10 items, ensuring your site remains responsive during large-scale operations.
+Yes! Scan your entire media library to find images without alt text. Select one or many images, process them in batches (default 10 items per batch via Action Scheduler), then review, edit if needed, and apply the recommendations.
 
 = What image formats are supported? =
 
@@ -111,10 +80,8 @@ The plugin supports all standard WordPress image formats, including JPEG, PNG, G
 
 == Screenshots ==
 
-1. Modern admin interface showing media library scan results and alt text recommendations
-2. Settings page with OpenAI API key configuration
-3. Overview dashboard displaying usage statistics and cost tracking (informational only - no feature restrictions)
-4. Media processing interface with batch operation controls
+1. Overview dashboard displaying usage statistics and Open AI API cost tracking (informational only - no feature restrictions)
+2. Media interface with batch processing, scan results, and editable alt text recommendations you can apply as-is or customize
 
 == Installation ==
 
@@ -122,21 +89,23 @@ The plugin supports all standard WordPress image formats, including JPEG, PNG, G
 2. Activate the plugin through the 'Plugins' screen in WordPress.
 3. Navigate to Flux Suite > AI Media Alt Creator in your WordPress admin.
 4. Enter your OpenAI API key in the Settings tab. [Get your OpenAI API key here](https://platform.openai.com/api-keys) if you don't have one.
-5. Start scanning your media library and generating alt text for your images!
+5. Scan your media, select images, generate alt text in batches, then edit or apply the results.
 
 **Important:** When you generate alt text, image data will be sent to OpenAI's servers via their Vision API for processing. Please ensure you're comfortable with this data sharing and have reviewed OpenAI's [Privacy Policy](https://openai.com/policies/privacy-policy) and [Terms of Use](https://openai.com/policies/terms-of-use) before using the plugin.
 
 == Changelog ==
 
+= 1.2.1 =
+* Fixed admin notice display positioning.
+* Refactored to a factory service for alt text generators.
+* Some UI clean up and optimization for new users.
+
+= 1.2.0 =
+* Updated architecture for better Pro plugin integration.
+* Fixed selected media assets not utilizing Pro plugin when active.
+
 = 1.1.2 =
-* Fixed extra quotes around Open AI response.[D[D[D[D[D[D[D[D[D[D[D[D[D
-
-= 1.1.1 =
-* Added some escaping, fixed file access warnings, removed artifact file.
-
-= 1.1.0 =
-* Cleaned up a lot of infrastructure.
-* Setup for better integration with the Pro plugin.
+* Fixed extra quotes around Open AI response.
 
 
 == Upgrade Notice ==

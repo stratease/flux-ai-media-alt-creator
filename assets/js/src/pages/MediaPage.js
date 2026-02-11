@@ -368,7 +368,6 @@ const MediaPage = () => {
                 <TableCell>{__('Filename', 'flux-ai-media-alt-creator')}</TableCell>
                 <TableCell>{__('AI Status', 'flux-ai-media-alt-creator')}</TableCell>
                 <TableCell>{__('Alt Text', 'flux-ai-media-alt-creator')}</TableCell>
-                <TableCell>{__('Actions', 'flux-ai-media-alt-creator')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -441,7 +440,9 @@ const MediaRow = React.memo(({
       </TableCell>
       <TableCell>
         {media.thumbnail_url ? (
-          <img src={media.thumbnail_url} alt="" style={{ width: 50, height: 50, objectFit: 'cover' }} />
+          <Link href={media.edit_url} target="_blank" rel="noopener noreferrer">        
+            <img src={media.thumbnail_url} alt="" style={{ width: 50, height: 50, objectFit: 'cover' }} />
+          </Link>
         ) : (
           <Box sx={{ width: 50, height: 50, bgcolor: 'grey.200' }} />
         )}
@@ -463,11 +464,6 @@ const MediaRow = React.memo(({
           placeholder={__('No recommendation yet', 'flux-ai-media-alt-creator')}
           variant="outlined"
         />
-      </TableCell>
-      <TableCell>
-        <Link href={media.edit_url} target="_blank" rel="noopener noreferrer">
-          {__('Edit', 'flux-ai-media-alt-creator')}
-        </Link>
       </TableCell>
     </TableRow>
   );

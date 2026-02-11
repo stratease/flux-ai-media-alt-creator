@@ -111,12 +111,13 @@ class ApiProvider {
 	 * Register REST API routes.
 	 *
 	 * @since 1.0.0
+	 * @since 1.2.0 Updated AltTextController instantiation - removed OpenAIService dependency.
 	 * @return void
 	 */
 	public function register_rest_routes() {
 		// Initialize controllers.
 		$media_controller = new MediaController( $this->media_scanner );
-		$alt_text_controller = new AltTextController( $this->openai_service, $this->media_scanner, $this->async_job_service );
+		$alt_text_controller = new AltTextController( $this->media_scanner, $this->async_job_service );
 		$options_controller = new OptionsController( $this->settings );
 		$usage_controller = new UsageController( $this->usage_tracker );
 

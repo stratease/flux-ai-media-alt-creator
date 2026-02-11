@@ -128,12 +128,8 @@ const App = () => {
   }, [extensionVersion]);
 
   // Render registered tab component using extension registry.
-  const renderRegisteredTab = (tab) => {
-    // Skip default tabs - they have their own routes
-    if (['overview', 'media', 'settings'].includes(tab.slug)) {
-      return null;
-    }
-
+  // This function should ONLY be called for extension tabs (not default tabs).
+  const renderRegisteredTab = React.useCallback((tab) => {
     // Get extensions for the tabs slot (call this fresh each render to get latest registrations)
     const extensions = window.FLUX_EXTENSIONS?.get('flux.admin.tabs', {}) || [];
     
@@ -155,15 +151,18 @@ const App = () => {
       // Fallback: check if tab has a component name (legacy PHP registration)
       if (tab.component && window[tab.component]) {
         const Component = window[tab.component];
-        return (
-          <ErrorBoundary key={tab.slug}>
-            <Component />
-          </ErrorBoundary>
-        );
+        if (typeof Component === 'function' || (typeof Component === 'object' && Component !== null)) {
+          return (
+            <ErrorBoundary key={tab.slug}>
+              <Component />
+            </ErrorBoundary>
+          );
+        }
       }
       
+      // Return a valid React element (not null) for missing components
       return (
-        <div>
+        <div key={tab.slug}>
           <p>{__('Component not found', 'flux-ai-media-alt-creator')}: {tab.slug}</p>
           {process.env.NODE_ENV === 'development' && (
             <pre>{JSON.stringify({ tab, extensions: extensions.map(e => ({ id: e.id, slug: e.slug })) }, null, 2)}</pre>
@@ -175,15 +174,25 @@ const App = () => {
     // Use extension's render function if provided
     if (tabExtension.render && typeof tabExtension.render === 'function') {
       try {
+        const rendered = tabExtension.render({ tab, ...(tabExtension.props || {}) });
+        // Ensure rendered value is a valid React element
+        if (!React.isValidElement(rendered)) {
+          console.error(`Extension ${tabExtension.id} render function did not return a valid React element`);
+          return (
+            <div key={tabExtension.id || tab.slug}>
+              {__('Invalid render output', 'flux-ai-media-alt-creator')}: {tab.slug}
+            </div>
+          );
+        }
         return (
           <ErrorBoundary key={tabExtension.id || tab.slug}>
-            {tabExtension.render({ tab, ...(tabExtension.props || {}) })}
+            {rendered}
           </ErrorBoundary>
         );
       } catch (error) {
         console.error(`Error rendering extension ${tabExtension.id}:`, error);
         return (
-          <div>
+          <div key={tabExtension.id || tab.slug}>
             {__('Error rendering component', 'flux-ai-media-alt-creator')}: {error.message}
           </div>
         );
@@ -196,25 +205,42 @@ const App = () => {
         const Component = tabExtension.component;
         
         // Ensure Component is actually a React component
-        if (typeof Component !== 'function' && typeof Component !== 'object') {
+        if (typeof Component !== 'function' && (typeof Component !== 'object' || Component === null)) {
           console.error(`Extension ${tabExtension.id} component is not a valid React component:`, typeof Component, Component);
           return (
-            <div>
+            <div key={tabExtension.id || tab.slug}>
               {__('Invalid component type', 'flux-ai-media-alt-creator')}: {tab.slug} (type: {typeof Component})
             </div>
           );
         }
         
-        // Render the component
+        // Validate that Component can be rendered as a React element
+        // This ensures React recognizes it as a valid component
+        let componentElement;
+        try {
+          componentElement = React.createElement(Component, tabExtension.props || {});
+          if (!React.isValidElement(componentElement)) {
+            throw new Error('Component did not create a valid React element');
+          }
+        } catch (createError) {
+          console.error(`Error creating element from component ${tabExtension.id}:`, createError);
+          return (
+            <div key={tabExtension.id || tab.slug}>
+              {__('Error creating component element', 'flux-ai-media-alt-creator')}: {createError.message}
+            </div>
+          );
+        }
+        
+        // Render the component - ensure it's wrapped properly
         return (
           <ErrorBoundary key={tabExtension.id || tab.slug}>
-            <Component {...(tabExtension.props || {})} />
+            {componentElement}
           </ErrorBoundary>
         );
       } catch (error) {
         console.error(`Error rendering component for ${tabExtension.id}:`, error);
         return (
-          <div>
+          <div key={tabExtension.id || tab.slug}>
             {__('Error rendering component', 'flux-ai-media-alt-creator')}: {error.message}
             {process.env.NODE_ENV === 'development' && (
               <pre>{error.stack}</pre>
@@ -224,12 +250,13 @@ const App = () => {
       }
     }
     
+    // Return a valid React element (not null) when no render/component is provided
     return (
-      <div>
+      <div key={tab.slug}>
         {__('No render function or component provided', 'flux-ai-media-alt-creator')}: {tab.slug}
       </div>
     );
-  };
+  }, []);
 
   return (
     <ErrorBoundary>
@@ -242,13 +269,24 @@ const App = () => {
                 <Route path="/overview" element={<OverviewPage />} />
                 <Route path="/media" element={<MediaPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
-                {allTabs.map((tab) => (
-                  <Route
-                    key={tab.slug}
-                    path={`/${tab.slug}`}
-                    element={renderRegisteredTab(tab)}
-                  />
-                ))}
+                {/* Only create routes for extension tabs (not default tabs) */}
+                {allTabs
+                  .filter(tab => !['overview', 'media', 'settings'].includes(tab.slug))
+                  .map((tab) => {
+                    const element = renderRegisteredTab(tab);
+                    // Only create route if we have a valid element (should always be true, but safety check)
+                    if (element && React.isValidElement(element)) {
+                      return (
+                        <Route
+                          key={tab.slug}
+                          path={`/${tab.slug}`}
+                          element={element}
+                        />
+                      );
+                    }
+                    return null;
+                  })
+                  .filter(Boolean)}
                 <Route path="/" element={<Navigate to="/overview" replace />} />
               </Routes>
             </PageLayout>

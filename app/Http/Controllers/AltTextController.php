@@ -7,10 +7,8 @@
  */
 namespace FluxAIMediaAltCreator\App\Http\Controllers;
 
-use FluxAIMediaAltCreator\App\Services\OpenAIService;
 use FluxAIMediaAltCreator\App\Services\MediaScanner;
 use FluxAIMediaAltCreator\App\Services\AsyncJobService;
-use FluxAIMediaAltCreator\FluxPlugins\Common\Logger\Logger;
 use WP_REST_Request;
 use WP_REST_Response;
 
@@ -20,14 +18,6 @@ use WP_REST_Response;
  * @since 1.0.0
  */
 class AltTextController extends BaseController {
-
-	/**
-	 * OpenAI service instance.
-	 *
-	 * @since 1.0.0
-	 * @var OpenAIService
-	 */
-	private $openai_service;
 
 	/**
 	 * Media scanner instance.
@@ -50,12 +40,11 @@ class AltTextController extends BaseController {
 	 *
 	 * @since 1.0.0
 	 * @since 1.1.0 Removed Logger parameter, now uses Logger::get_instance() directly via BaseController.
-	 * @param OpenAIService  $openai_service OpenAI service instance.
+	 * @since 1.2.0 Removed OpenAIService parameter - now uses AltTextApiService::get_instance() directly.
 	 * @param MediaScanner   $media_scanner Media scanner instance.
 	 * @param AsyncJobService $async_job_service Async job service instance.
 	 */
-	public function __construct( OpenAIService $openai_service, MediaScanner $media_scanner, AsyncJobService $async_job_service ) {
-		$this->openai_service = $openai_service;
+	public function __construct( MediaScanner $media_scanner, AsyncJobService $async_job_service ) {
 		$this->media_scanner = $media_scanner;
 		$this->async_job_service = $async_job_service;
 		parent::__construct();
@@ -89,27 +78,27 @@ class AltTextController extends BaseController {
 			],
 		] );
 
-            register_rest_route( 'flux-ai-media-alt-creator/v1', '/alt-text/apply', [
-                [
-                    'methods' => 'POST',
-                    'callback' => [ $this, 'apply_alt_text' ],
-                    'permission_callback' => [ $this, 'check_permissions' ],
-                    'args' => [
-                        'media_ids' => [
-                            'required' => true,
-                            'type' => 'array',
-                            'items' => [
-                                'type' => 'integer',
-                            ],
-                        ],
-                        'alt_texts' => [
-                            'required' => false,
-                            'type' => 'object',
-                            'description' => 'Map of media_id => alt_text for custom alt text values',
-                        ],
-                    ],
-                ],
-            ] );
+		register_rest_route( 'flux-ai-media-alt-creator/v1', '/alt-text/apply', [
+			[
+				'methods' => 'POST',
+				'callback' => [ $this, 'apply_alt_text' ],
+				'permission_callback' => [ $this, 'check_permissions' ],
+				'args' => [
+					'media_ids' => [
+						'required' => true,
+						'type' => 'array',
+						'items' => [
+							'type' => 'integer',
+						],
+					],
+					'alt_texts' => [
+						'required' => false,
+						'type' => 'object',
+						'description' => 'Map of media_id => alt_text for custom alt text values',
+					],
+				],
+			],
+		] );
 
 		register_rest_route( 'flux-ai-media-alt-creator/v1', '/alt-text/batch-generate', [
 			[
@@ -138,6 +127,7 @@ class AltTextController extends BaseController {
 	 *
 	 * @since 1.0.0
 	 * @since 1.1.0 Changed from 'ai_status' to 'scan_status' using dedicated meta field and update_scan_status() method.
+	 * @since 1.2.0 Updated to use AltTextApiService for abstracted generation with hooks.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
@@ -160,8 +150,10 @@ class AltTextController extends BaseController {
 				], 'Alt text generation scheduled' );
 			}
 
-			// Process synchronously.
+			// Process synchronously using abstracted service.
+			$alt_text_api_service = \FluxAIMediaAltCreator\App\Services\AltTextApiService::get_instance();
 			$results = [];
+			
 			foreach ( $media_ids as $media_id ) {
 				$media_url = wp_get_attachment_url( $media_id );
 				
@@ -174,23 +166,8 @@ class AltTextController extends BaseController {
 					continue;
 				}
 
-				// Update status to processing.
-				$this->media_scanner->update_scan_status( $media_id, 'processing' );
-
-				// Generate alt text.
-				$result = $this->openai_service->generate_alt_text( $media_url, $media_id );
-
-				if ( $result['success'] ) {
-					$this->media_scanner->update_scan_status( $media_id, 'completed' );
-					$this->media_scanner->update_scan_data( $media_id, [
-						'recommended_alt_text' => $result['alt_text'],
-					] );
-				} else {
-					$this->media_scanner->update_scan_status( $media_id, 'error' );
-					$this->media_scanner->update_scan_data( $media_id, [
-						'error_message' => $result['error'] ?? 'Unknown error',
-					] );
-				}
+				// Generate alt text via abstracted service (handles status and scan data updates).
+				$result = $alt_text_api_service->generate_alt_text( $media_id, $media_url );
 
 				$results[] = [
 					'media_id' => $media_id,
@@ -210,6 +187,7 @@ class AltTextController extends BaseController {
 	 * Apply alt text to WordPress.
 	 *
 	 * @since 1.0.0
+	 * @since 1.2.0 Updated to use AltTextApiService for abstracted application with hooks.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
@@ -222,39 +200,25 @@ class AltTextController extends BaseController {
 				return $this->create_error_response( 'Invalid media IDs', 'invalid_media_ids', 400 );
 			}
 
+			// Use abstracted service for application.
+			$alt_text_api_service = \FluxAIMediaAltCreator\App\Services\AltTextApiService::get_instance();
 			$results = [];
+			
 			foreach ( $media_ids as $media_id ) {
-				// Use custom alt text if provided, otherwise use recommended from scan data.
+				// Use custom alt text if provided, otherwise let service get from scan data.
 				$alt_text = '';
 				if ( isset( $alt_texts[ $media_id ] ) && ! empty( $alt_texts[ $media_id ] ) ) {
 					$alt_text = sanitize_text_field( $alt_texts[ $media_id ] );
-				} else {
-					$scan_data = $this->media_scanner->get_scan_data( $media_id );
-					$alt_text = $scan_data['recommended_alt_text'] ?? '';
 				}
 
-				if ( empty( $alt_text ) ) {
-					$results[] = [
-						'media_id' => $media_id,
-						'success' => false,
-						'error' => 'No alt text provided',
-					];
-					continue;
-				}
-
-				// Apply alt text.
-				update_post_meta( $media_id, '_wp_attachment_image_alt', $alt_text );
-
-				// Update scan data with the applied alt text.
-				$this->media_scanner->update_scan_data( $media_id, [
-					'applied' => true,
-					'recommended_alt_text' => $alt_text,
-				] );
+				// Apply alt text via abstracted service (handles scan data updates).
+				$result = $alt_text_api_service->apply_alt_text( $media_id, $alt_text );
 
 				$results[] = [
 					'media_id' => $media_id,
-					'success' => true,
-					'alt_text' => $alt_text,
+					'success' => $result['success'],
+					'alt_text' => $result['alt_text'] ?? '',
+					'error' => $result['error'] ?? '',
 				];
 			}
 
