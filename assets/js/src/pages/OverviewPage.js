@@ -8,8 +8,9 @@ import {
   Alert,
   Button,
   Stack,
+  Tooltip,
 } from '@mui/material';
-import { PlayArrow } from '@mui/icons-material';
+import { PlayArrow, InfoOutlined } from '@mui/icons-material';
 import { __ } from '@wordpress/i18n';
 import { useNavigate } from 'react-router-dom';
 import { useUsage } from '../hooks/useUsage';
@@ -39,11 +40,20 @@ const OverviewPage = () => {
     return new Intl.NumberFormat('en-US').format(num);
   };
 
+  const providerLabel = usage?.provider_display_label || __('OpenAI (gpt-4o-mini)', 'flux-ai-media-alt-creator');
+
   return (
     <Box>
-      <Typography variant="h5" gutterBottom>
-        {__('Usage Statistics', 'flux-ai-media-alt-creator')}
-      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
+        <Typography variant="h5" gutterBottom sx={{ mb: 0 }}>
+          {__('Usage Statistics', 'flux-ai-media-alt-creator')}
+        </Typography>
+        {!isProActive && (
+          <Tooltip title={__('Cost estimates are based on the active AI provider: ', 'flux-ai-media-alt-creator') + providerLabel} arrow placement="top">
+            <InfoOutlined fontSize="small" color="action" sx={{ cursor: 'help' }} />
+          </Tooltip>
+        )}
+      </Box>
 
       <Grid container spacing={3} sx={{ mt: 2 }}>
         {/* Media without alt - top, out of card, with Start processing button */}
@@ -97,13 +107,12 @@ const OverviewPage = () => {
 
         {!isProActive && (
           <>
-            {/* Open AI Estimates - token usage and pricing */}
+            {/* API Usage - token usage and pricing (provider-specific cost calculations) */}
             <Grid item xs={12} lg={6}>
-              
               <Grid container spacing={2}>
                 <Grid item xs={12}>
                   <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                    {__('OpenAI API Estimates', 'flux-ai-media-alt-creator')}
+                    {__('API Usage', 'flux-ai-media-alt-creator')}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={4}>

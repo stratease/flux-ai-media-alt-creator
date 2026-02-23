@@ -21,6 +21,15 @@ use WP_REST_Response;
 class OptionsController extends BaseController {
 
 	/**
+	 * Placeholder returned when an API key is set. Never send the real key to the client.
+	 * When the client sends this value back on save, we keep the existing stored key.
+	 *
+	 * @since 2.0.0
+	 * @var string
+	 */
+	const API_KEY_PLACEHOLDER = '__REDACTED__';
+
+	/**
 	 * Settings instance.
 	 *
 	 * @since 1.0.0
@@ -92,12 +101,9 @@ class OptionsController extends BaseController {
 	public function get_options( WP_REST_Request $request ) {
 		try {
 			$options = $this->settings->get_all();
-			
-			// Mask API key for security.
-			if ( ! empty( $options['openai_api_key'] ) ) {
-				$options['openai_api_key'] = $this->mask_api_key( $options['openai_api_key'] );
-			}
-			
+			$options = $this->mask_api_keys_in_options( $options );
+			// Expose placeholder to frontend so it can avoid sending it as a new key and can show friendly display.
+			$options['_api_key_placeholder'] = self::API_KEY_PLACEHOLDER;
 			return $this->create_success_response( $options, 'Options retrieved successfully' );
 		} catch ( \Exception $e ) {
 			return $this->create_error_response( 'Failed to retrieve options: ' . $e->getMessage() );
@@ -119,15 +125,25 @@ class OptionsController extends BaseController {
 				return $this->create_error_response( 'Invalid options format', 'invalid_options', 400 );
 			}
 
+			// Do not overwrite API keys when client sends the placeholder (e.g. "unchanged" from UI).
+			$current = $this->settings->get_all();
+			$api_key_keys = [ 'openai_api_key', 'gemini_api_key', 'claude_api_key' ];
+			foreach ( $api_key_keys as $key ) {
+				if ( isset( $options[ $key ] ) && $options[ $key ] === self::API_KEY_PLACEHOLDER ) {
+					$options[ $key ] = $current[ $key ] ?? '';
+				}
+			}
+
+			// Do not persist meta key used only for frontend display.
+			unset( $options['_api_key_placeholder'] );
+
 			// Update options.
 			$this->settings->update( $options );
 
-			// Get updated options (with masked API key).
+			// Get updated options (with masked API keys).
 			$updated_options = $this->settings->get_all();
-			if ( ! empty( $updated_options['openai_api_key'] ) ) {
-				$updated_options['openai_api_key'] = $this->mask_api_key( $updated_options['openai_api_key'] );
-			}
-			
+			$updated_options = $this->mask_api_keys_in_options( $updated_options );
+			$updated_options['_api_key_placeholder'] = self::API_KEY_PLACEHOLDER;
 			return $this->create_success_response( $updated_options, 'Options updated successfully' );
 		} catch ( \Exception $e ) {
 			return $this->create_error_response( 'Failed to update options: ' . $e->getMessage() );
@@ -157,22 +173,36 @@ class OptionsController extends BaseController {
 	}
 
 	/**
-	 * Mask API key for display.
+	 * Mask all provider API keys in options for display.
+	 *
+	 * @since 2.0.0
+	 * @param array $options Options array.
+	 * @return array Options with API keys masked.
+	 */
+	private function mask_api_keys_in_options( $options ) {
+		$keys = [ 'openai_api_key', 'gemini_api_key', 'claude_api_key' ];
+		foreach ( $keys as $key ) {
+			if ( ! empty( $options[ $key ] ) ) {
+				$options[ $key ] = $this->mask_api_key( $options[ $key ] );
+			}
+		}
+		return $options;
+	}
+
+	/**
+	 * Mask API key for display. Returns a fixed placeholder so the real key is never sent to the client.
+	 * The client can send this placeholder back on save; we then keep the existing stored key.
 	 *
 	 * @since 1.0.0
+	 * @since 2.0.0 Return fixed API_KEY_PLACEHOLDER instead of partial key to avoid overwriting on resave.
 	 * @param string $api_key API key.
-	 * @return string Masked API key.
+	 * @return string Placeholder string (API_KEY_PLACEHOLDER when key is set, empty when not).
 	 */
 	private function mask_api_key( $api_key ) {
-		if ( empty( $api_key ) || strlen( $api_key ) < 8 ) {
-			return '••••••••';
+		if ( empty( $api_key ) || ! is_string( $api_key ) ) {
+			return '';
 		}
-		
-		$length = strlen( $api_key );
-		$visible = 4;
-		$masked = str_repeat( '•', $length - $visible );
-		
-		return substr( $api_key, 0, $visible ) . $masked;
+		return self::API_KEY_PLACEHOLDER;
 	}
 }
 

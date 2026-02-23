@@ -7,6 +7,7 @@
  */
 namespace FluxAIMediaAltCreator\App\Services;
 
+use FluxAIMediaAltCreator\App\Services\Vision\VisionProviderInterface;
 use FluxAIMediaAltCreator\FluxPlugins\Common\Logger\Logger;
 use FluxAIMediaAltCreator\App\Services\UsageTracker;
 
@@ -14,8 +15,9 @@ use FluxAIMediaAltCreator\App\Services\UsageTracker;
  * Service to interact with OpenAI API for alt text generation.
  *
  * @since 1.0.0
+ * @since 2.0.0 Implements VisionProviderInterface.
  */
-class OpenAIService {
+class OpenAIService implements VisionProviderInterface {
 
 	/**
 	 * Singleton instance.
@@ -117,8 +119,8 @@ class OpenAIService {
 			];
 		}
 
-		// Build prompt.
-		$prompt = $this->get_alt_text_prompt();
+		// Build prompt (centralized default; filter allows override per request).
+		$prompt = AltTextApiService::get_default_alt_text_prompt();
 		
 		/**
 		 * Filter the alt text generation prompt.
@@ -192,16 +194,6 @@ class OpenAIService {
 		do_action( 'flux_ai_alt_creator/openai_service/generate_alt_text/after', $result, $media_url, $media_id );
 
 		return $result;
-	}
-
-	/**
-	 * Get default alt text prompt.
-	 *
-	 * @since 1.0.0
-	 * @return string Prompt text.
-	 */
-	private function get_alt_text_prompt() {
-		return __( 'Generate a concise, SEO friendly alt text for this media file that accurately describes its content and context. The alt text should be helpful for screen readers and should not exceed 125 characters.', 'flux-ai-media-alt-creator' );
 	}
 }
 

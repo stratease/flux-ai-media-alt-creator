@@ -4,25 +4,25 @@ Tags: media, alt text, ai, images, seo
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 8.0
-Stable tag: 1.2.1
+Stable tag: 2.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Generate AI-powered alt text for your WordPress media using OpenAI's Vision API. Process batches of images at once. Improve accessibility, SEO, and WCAG compliance. 
+AI-powered alt text for WordPress media. Batch process images with OpenAI, Google Gemini, or Anthropic Claude vision APIs. Improves accessibility and SEO.
 
 == Description ==
 
 ### AI-Powered Alt Text for WordPress Media
 
-Flux AI Media Alt Creator generates descriptive, SEO-friendly alt text for your WordPress media using OpenAI's GPT-4o-mini Vision API. Select multiple images, process them in a batch, then review the AI-generated recommendations. Edit any suggestion before saving, or apply as-is with one click. Transform accessibility compliance from a time-consuming task into a streamlined workflow. Bring your own OpenAI API key for the biggest cost savings.
+Flux AI Media Alt Creator generates descriptive, SEO-friendly alt text for your WordPress media using your choice of vision API: **OpenAI** (GPT-4o-mini), **Google Gemini** (gemini-2.5-flash-lite), or **Anthropic Claude** (claude-haiku-4-5-20251001). Select multiple images, process them in a batch, then review the AI-generated recommendations. Edit any suggestion before saving, or apply as-is with one click. Transform accessibility compliance from a time-consuming task into a streamlined workflow. Bring your own API key for the provider you choose.
 
 **Batch processing:** Select multiple media files and generate alt text for all of them at once. Results appear as recommendations you can edit or apply.
 
-**This plugin integrates with OpenAI's Vision API** to analyze your images and generate accurate, descriptive alt text. When you generate alt text, image data is sent to OpenAI's servers for processing using their GPT-4o-mini Vision API endpoint, which analyzes image content and generates descriptive text based on what it sees in your images.
+**Multiple vision providers (2.0.0):** Choose OpenAI, Google Gemini, or Anthropic Claude in Settings. The plugin uses the selected provider's vision API to analyze images and generate alt text. Cost estimates in the Overview tab are calculated correctly for each model.
 
-**OpenAI API key required.** The plugin requires an OpenAI API key to function. Image data will be sent to OpenAI's servers for processing when generating alt text. You can [get an OpenAI API key here](https://platform.openai.com/api-keys) (signup required). Please review OpenAI's [Privacy Policy](https://openai.com/policies/privacy-policy) and [Terms of Use](https://openai.com/policies/terms-of-use) before using this plugin.
+**API key required.** You need an API key for your chosen provider. Get keys here: [OpenAI](https://platform.openai.com/settings/organization/api-keys), [Google Gemini](https://aistudio.google.com/apikey), [Anthropic Claude](https://console.anthropic.com/settings/keys). Image data is sent to the selected provider when you generate alt text. Please review each provider's privacy and terms before use.
 
-Looking for automated alt text generation without managing OpenAI API keys? Check out [Flux AI Media Alt Creator Pro](https://fluxplugins.com/ai-media-alt-creator-pro/), which includes automation features and only requires a Flux Suite license - no OpenAI API key needed.
+Looking for automated alt text generation without managing API keys? Check out [Flux AI Media Alt Creator Pro](https://fluxplugins.com/ai-media-alt-creator-pro/), which includes automation features and only requires a Flux Suite license.
 
 ### Professional-Grade AI Alt Text Generation
 
@@ -31,40 +31,40 @@ Looking for automated alt text generation without managing OpenAI API keys? Chec
 * **Batch processing** – Process multiple images at once with background job processing
 * **Edit before apply** – Review, edit, or apply each recommendation as-is
 * **Smart scanning** – Identify media files missing alt text across your library
-* **OpenAI Vision API** – Uses GPT-4o-mini for accurate, context-aware descriptions
+* **Multiple vision APIs (2.0.0)** – OpenAI (gpt-4o-mini), Google Gemini (gemini-2.5-flash-lite), or Anthropic Claude (claude-haiku-4-5) for accurate, context-aware descriptions
 
 **Perfect for:** Site owners improving accessibility, content creators with large media libraries, SEO-focused sites, and anyone meeting WCAG guidelines.
 
 ### How it works
 
 1. **Scan** – Identify images without alt text in your media library
-2. **Select & generate** – Choose one or many images; the plugin sends them to OpenAI's Vision API for analysis
+2. **Select & generate** – Choose one or many images; the plugin sends them to your chosen provider's vision API for analysis
 3. **Review** – See AI-generated alt text for each image
 4. **Edit or apply** – Adjust any recommendation, then apply individually or in bulk
 
-Pricing is usage-based and shown in the Overview tab. The GPT-4o-mini model is cost-effective for large libraries. Usage tracking is informational only—no feature restrictions.
+Pricing is usage-based and shown in the Overview tab. Cost estimates are calculated per model (OpenAI, Gemini, Claude). Usage tracking is informational only—no feature restrictions.
 
 == Frequently Asked Questions ==
 
-= Do I need an OpenAI API key? =
+= Do I need an API key? =
 
-Yes, an OpenAI API key is **required** to use this plugin. The plugin integrates with OpenAI's Vision API to analyze images and generate alt text. The plugin cannot function without an OpenAI API key. You can [sign up for an OpenAI account and get an API key here](https://platform.openai.com/api-keys).
+Yes. You need an API key for the provider you select in Settings: **OpenAI** ([get key](https://platform.openai.com/settings/organization/api-keys)), **Google Gemini** ([get key](https://aistudio.google.com/apikey)), or **Anthropic Claude** ([get key](https://console.anthropic.com/settings/keys)). The plugin uses that provider's vision API to analyze images and generate alt text.
 
-If you prefer not to manage API keys, consider [Flux AI Media Alt Creator Pro](https://fluxplugins.com/ai-media-alt-creator-pro/), which includes automation features and only requires a single Flux Suite license - no OpenAI API key needed.
+If you prefer not to manage API keys, consider [Flux AI Media Alt Creator Pro](https://fluxplugins.com/ai-media-alt-creator-pro/), which includes automation and only requires a Flux Suite license.
 
-= How does the OpenAI integration work? =
+= How does the vision API integration work? =
 
-The plugin sends image data to OpenAI's Vision API (GPT-4o-mini) for analysis. The AI generates alt text recommendations, which you can edit or apply as-is. Image data is transmitted to OpenAI's servers during generation. Review OpenAI's [Privacy Policy](https://openai.com/policies/privacy-policy) and [Terms of Use](https://openai.com/policies/terms-of-use).
+Choose a provider in Settings (OpenAI, Google Gemini, or Anthropic Claude). The plugin sends image data to that provider's vision API for analysis and generates alt text recommendations you can edit or apply. Image data is transmitted only when you request generation. Review each provider's privacy policy and terms before use.
 
 = Will my images be sent to a third party? =
 
-Yes. When you generate alt text, image data is sent to OpenAI's servers via their Vision API for analysis. Data is only sent when you explicitly request generation—no automatic background transmission. Review OpenAI's [Privacy Policy](https://openai.com/policies/privacy-policy) and [Terms of Use](https://openai.com/policies/terms-of-use).
+Yes. When you generate alt text, image data is sent to the provider you selected (OpenAI, Google Gemini, or Anthropic Claude) for analysis. Data is only sent when you explicitly request generation—no automatic background transmission. Review each provider's privacy policy and terms before use.
 
 = How much does it cost? =
 
-The plugin uses OpenAI's GPT-4o-mini Vision API, which is very affordable. Pricing is based on usage and displayed in real-time in the Overview tab. You'll be charged by OpenAI based on their pricing for the GPT-4o-mini Vision API. Costs are typically minimal for alt text generation tasks.
+Cost depends on the provider and model you choose. The Overview tab shows usage and estimated cost; calculations are correct for each model (OpenAI gpt-4o-mini, Google Gemini 2.5 Flash-Lite, Anthropic Claude Haiku 4.5). You are charged by the provider based on their pricing. A tooltip on the Usage Statistics section shows which provider and model are used for the estimates.
 
-**Important:** The plugin's usage tracking and cost estimation features are provided for your information only. They do not limit or restrict any features or functionality - you can use all plugin features without any usage-based restrictions or quotas enforced by the plugin.
+**Important:** The plugin's usage tracking and cost estimation are for your information only. They do not limit or restrict any features.
 
 = Is there a Pro version with automation? =
 
@@ -76,7 +76,7 @@ Yes! Scan your entire media library to find images without alt text. Select one 
 
 = What image formats are supported? =
 
-The plugin supports all standard WordPress image formats, including JPEG, PNG, GIF, WebP, AVIF, SVG, BMP, TIFF, and ICO. The OpenAI Vision API can analyze any image format supported by WordPress.
+The plugin supports all standard WordPress image formats, including JPEG, PNG, GIF, WebP, AVIF, SVG, BMP, TIFF, and ICO. Supported vision APIs can analyze the image formats they accept (typically JPEG, PNG, GIF, WebP).
 
 == Screenshots ==
 
@@ -88,27 +88,33 @@ The plugin supports all standard WordPress image formats, including JPEG, PNG, G
 1. Upload the plugin files to the `/wp-content/plugins/flux-ai-media-alt-creator` directory, or install the plugin through the WordPress plugins screen directly.
 2. Activate the plugin through the 'Plugins' screen in WordPress.
 3. Navigate to Flux Suite > AI Media Alt Creator in your WordPress admin.
-4. Enter your OpenAI API key in the Settings tab. [Get your OpenAI API key here](https://platform.openai.com/api-keys) if you don't have one.
+4. In Settings, choose your AI provider (OpenAI, Google Gemini, or Anthropic Claude) and enter the corresponding API key. Get keys: [OpenAI](https://platform.openai.com/settings/organization/api-keys), [Gemini](https://aistudio.google.com/apikey), [Claude](https://console.anthropic.com/settings/keys).
 5. Scan your media, select images, generate alt text in batches, then edit or apply the results.
 
-**Important:** When you generate alt text, image data will be sent to OpenAI's servers via their Vision API for processing. Please ensure you're comfortable with this data sharing and have reviewed OpenAI's [Privacy Policy](https://openai.com/policies/privacy-policy) and [Terms of Use](https://openai.com/policies/terms-of-use) before using the plugin.
+**Important:** When you generate alt text, image data is sent to your chosen provider for processing. Please review that provider's privacy policy and terms before use.
 
 == Changelog ==
+
+= 2.0.0 =
+* Fixed edge case where alt text preview would not update after being edited.
+* Added integration for Gemini and Claude API's.
+
+= 2.0.0 =
+* **Multiple vision providers:** Added Google Gemini (gemini-2.5-flash-lite) and Anthropic Claude (claude-haiku-4-5) alongside OpenAI (gpt-4o-mini). Choose your provider in Settings.
+* Provider-specific API key fields and setup links: OpenAI, [Gemini](https://aistudio.google.com/apikey), [Claude](https://console.anthropic.com/settings/keys).
+* Usage Statistics tooltip shows which provider and model are used; cost estimates are calculated correctly for each model.
+* Backwards compatible: existing installs continue to use OpenAI by default. Pro plugin integration unchanged.
 
 = 1.2.1 =
 * Fixed admin notice display positioning.
 * Refactored to a factory service for alt text generators.
 * Some UI clean up and optimization for new users.
 
-= 1.2.0 =
-* Updated architecture for better Pro plugin integration.
-* Fixed selected media assets not utilizing Pro plugin when active.
-
-= 1.1.2 =
-* Fixed extra quotes around Open AI response.
-
 
 == Upgrade Notice ==
+
+= 2.0.0 =
+Major update: choose OpenAI, Google Gemini, or Anthropic Claude for alt text generation. Existing sites keep using OpenAI by default. Cost estimates and Usage Statistics tooltip reflect the active provider.
 
 = 1.1.0 =
 Update includes performance improvements, better batch processing efficiency, and enhanced compatibility with the Pro plugin. The scan status field has been renamed for clarity, but existing data remains compatible.
@@ -120,46 +126,39 @@ Initial release of Flux AI Media Alt Creator. Automatically generate AI-powered 
 
 **External Service Integration:**
 
-This plugin integrates with OpenAI's Vision API service to analyze images and generate alt text. This integration is required for the plugin to function.
+This plugin can integrate with OpenAI, Google (Gemini), or Anthropic (Claude) vision APIs to analyze images and generate alt text. You choose one provider in Settings. The selected integration is required for the plugin to function.
 
 **What Data is Sent:**
 
-When you generate alt text, the following data is sent to OpenAI's servers:
-* Image files (image data is transmitted for analysis via OpenAI's Vision API)
-* Image URLs and metadata necessary for processing
-* Your OpenAI API key for authentication (stored securely in WordPress options, transmitted only during API requests)
+When you generate alt text, the following data is sent to the selected provider's servers:
+* Image files or URLs (for analysis via the provider's vision API)
+* Your API key for authentication (stored in WordPress options, transmitted only during API requests)
 
 **When Data is Sent:**
 
-Data is only sent when:
-* You explicitly request alt text generation for media files
-* The plugin makes API calls to OpenAI's Vision API endpoint for image analysis
+Data is only sent when you explicitly request alt text generation. No automatic background transmission.
 
-**Service Provider:**
-
-The external service is provided by OpenAI:
-* **Terms of Service**: https://openai.com/policies/terms-of-use
-* **Privacy Policy**: https://openai.com/policies/privacy-policy
-* **API Documentation**: https://platform.openai.com/docs/guides/vision
+**Service Providers (one chosen in Settings):**
+* **OpenAI** – Terms: https://openai.com/policies/terms-of-use | Privacy: https://openai.com/policies/privacy-policy | API keys: https://platform.openai.com/settings/organization/api-keys
+* **Google Gemini** – API keys: https://aistudio.google.com/apikey
+* **Anthropic Claude** – API keys: https://console.anthropic.com/settings/keys
 
 **Important Notes:**
-* OpenAI integration is required for plugin functionality - the plugin cannot generate alt text without it
-* Image data is transmitted to OpenAI's servers for processing via their Vision API
-* Your OpenAI API key is stored in WordPress options (encrypted at rest if your WordPress installation supports it)
-* You can remove your API key at any time to disable the integration
-* No data is automatically sent in the background - transmission only occurs when you explicitly request alt text generation
+* An API key for your chosen provider is required
+* Image data is transmitted to that provider when you request generation
+* You can remove or change the API key at any time
+* No data is sent in the background
 
 == Privacy Policy ==
 
-Flux AI Media Alt Creator integrates with OpenAI's Vision API to analyze images and generate alt text. When you use this plugin, image data is sent to OpenAI's servers for processing.
+Flux AI Media Alt Creator integrates with one of OpenAI, Google Gemini, or Anthropic Claude (your choice in Settings) to analyze images and generate alt text. When you generate alt text, image data is sent to the selected provider for processing.
 
 **View our full privacy policy**: [https://fluxplugins.com/privacy-policy/](https://fluxplugins.com/privacy-policy/)
 
 **Key points:**
-* OpenAI Vision API integration required for functionality
-* Image data transmitted to OpenAI for analysis when generating alt text
-* OpenAI API key stored in WordPress options for authentication
-* No automatic background transmission - data only sent when you explicitly request alt text generation
+* One vision API (OpenAI, Gemini, or Claude) is used based on Settings
+* Image data is transmitted to that provider when you request generation
+* API key stored in WordPress options; no automatic background transmission
 * Full compliance with WordPress.org guidelines and privacy regulations
 
 == Developer Notes ==

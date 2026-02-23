@@ -20,6 +20,7 @@ import {
   FormControlLabel,
   TextField,
   Grid,
+  InputAdornment,
 } from '@mui/material';
 import { __ } from '@wordpress/i18n';
 import { useMedia, useMediaTypeGroups } from '../hooks/useMedia';
@@ -161,10 +162,22 @@ const MediaPage = () => {
 
   const handleGenerateAltText = useCallback(async () => {
     if (selectedMedia.size === 0) return;
-    
+
+    const mediaIds = Array.from(selectedMedia);
     try {
-      const mediaIds = Array.from(selectedMedia);
-      await generateMutation.mutateAsync({ mediaIds, async: false });
+      const response = await generateMutation.mutateAsync({ mediaIds, async: false });
+      const results = response?.data ?? response;
+      // Always update the text field from the API response so the UI reflects new alt text
+      // even when the user had cleared the field or the result is unchanged.
+      setEditedAltTexts((prev) => {
+        const next = { ...prev };
+        (Array.isArray(results) ? results : []).forEach((r) => {
+          if (r.success && r.media_id != null) {
+            next[r.media_id] = r.alt_text ?? '';
+          }
+        });
+        return next;
+      });
       setSelectedMedia(new Set());
     } catch (error) {
       console.error('Failed to generate alt text:', error);
@@ -374,7 +387,9 @@ const MediaPage = () => {
               {data?.data?.map((media) => {
                 const isSelected = selectedMedia.has(media.id);
                 const altText = altTextMap.get(media.id) || '';
-                
+                const generatingMediaIds = generateMutation.isPending ? (generateMutation.variables?.mediaIds || []) : [];
+                const isGenerating = generatingMediaIds.includes(media.id);
+
                 return (
                   <MediaRow
                     key={media.id}
@@ -382,6 +397,7 @@ const MediaPage = () => {
                     isSelected={isSelected}
                     altText={altText}
                     mediaId={media.id}
+                    isGenerating={isGenerating}
                     onSelect={handleSelectMedia}
                     onAltTextChange={handleAltTextChange}
                     getStatusLabel={getStatusLabel}
@@ -411,12 +427,13 @@ const MediaPage = () => {
 /**
  * Memoized table row component to prevent unnecessary re-renders
  */
-const MediaRow = React.memo(({ 
-  media, 
-  isSelected, 
-  altText, 
+const MediaRow = React.memo(({
+  media,
+  isSelected,
+  altText,
   mediaId,
-  onSelect, 
+  isGenerating,
+  onSelect,
   onAltTextChange,
   getStatusLabel,
   getStatusColor,
@@ -440,7 +457,7 @@ const MediaRow = React.memo(({
       </TableCell>
       <TableCell>
         {media.thumbnail_url ? (
-          <Link href={media.edit_url} target="_blank" rel="noopener noreferrer">        
+          <Link href={media.edit_url} target="_blank" rel="noopener noreferrer">
             <img src={media.thumbnail_url} alt="" style={{ width: 50, height: 50, objectFit: 'cover' }} />
           </Link>
         ) : (
@@ -463,6 +480,14 @@ const MediaRow = React.memo(({
           onChange={handleAltTextChange}
           placeholder={__('No recommendation yet', 'flux-ai-media-alt-creator')}
           variant="outlined"
+          disabled={isGenerating}
+          InputProps={{
+            endAdornment: isGenerating ? (
+              <InputAdornment position="end">
+                <CircularProgress size={20} />
+              </InputAdornment>
+            ) : null,
+          }}
         />
       </TableCell>
     </TableRow>
@@ -474,6 +499,7 @@ const MediaRow = React.memo(({
     prevProps.mediaId === nextProps.mediaId &&
     prevProps.isSelected === nextProps.isSelected &&
     prevProps.altText === nextProps.altText &&
+    prevProps.isGenerating === nextProps.isGenerating &&
     prevProps.media.scan_status === nextProps.media.scan_status &&
     prevProps.media.filename === nextProps.media.filename &&
     prevProps.media.thumbnail_url === nextProps.media.thumbnail_url &&

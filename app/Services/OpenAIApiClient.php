@@ -92,7 +92,16 @@ class OpenAIApiClient {
 		}
 
 		// Parse response.
-		return $this->parse_response( $response['data'] );
+		$parsed = $this->parse_response( $response['data'] );
+		Logger::get_instance()->debug(
+			'OpenAI vision API response',
+			[
+				'raw_response' => $response['data'],
+				'parsed_content' => $parsed['content'] ?? '',
+				'parsed_content_length' => strlen( $parsed['content'] ?? '' ),
+			]
+		);
+		return $parsed;
 	}
 
 	/**

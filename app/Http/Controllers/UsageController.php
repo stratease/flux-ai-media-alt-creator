@@ -7,6 +7,7 @@
  */
 namespace FluxAIMediaAltCreator\App\Http\Controllers;
 
+use FluxAIMediaAltCreator\App\Services\Settings;
 use FluxAIMediaAltCreator\App\Services\UsageTracker;
 use FluxAIMediaAltCreator\FluxPlugins\Common\Logger\Logger;
 use WP_REST_Request;
@@ -56,16 +57,35 @@ class UsageController extends BaseController {
 	}
 
 	/**
+	 * Get display label for the active vision provider (for tooltips).
+	 *
+	 * @since 2.0.0
+	 * @return string Human-readable provider and model label.
+	 */
+	private static function get_provider_display_label() {
+		$provider = Settings::get_vision_provider();
+		$labels = [
+			'openai' => 'OpenAI (gpt-4o-mini)',
+			'gemini' => 'Google Gemini (gemini-2.5-flash-lite)',
+			'claude' => 'Anthropic Claude (claude-haiku-4-5-20251001)',
+		];
+		return $labels[ $provider ] ?? $labels['openai'];
+	}
+
+	/**
 	 * Get current month usage statistics.
 	 *
 	 * @since 1.0.0
+	 * @since 2.0.0 Added provider and provider_display_label to response.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
 	public function get_usage( WP_REST_Request $request ) {
 		try {
 			$usage = $this->usage_tracker->get_current_month_usage();
-			
+			$usage['provider'] = Settings::get_vision_provider();
+			$usage['provider_display_label'] = self::get_provider_display_label();
+
 			/**
 			 * Filter usage data before returning.
 			 *
@@ -73,7 +93,7 @@ class UsageController extends BaseController {
 			 * @param array $usage Usage data.
 			 */
 			$usage = apply_filters( 'flux_ai_alt_creator_usage_data', $usage );
-			
+
 			return $this->create_success_response( $usage, 'Usage statistics retrieved successfully' );
 		} catch ( \Exception $e ) {
 			return $this->create_error_response( 'Failed to retrieve usage statistics: ' . $e->getMessage() );

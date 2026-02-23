@@ -23,14 +23,26 @@ class Settings {
 	private static $option_name = 'flux_ai_alt_creator_settings';
 
 	/**
+	 * Valid vision provider slugs.
+	 *
+	 * @since 2.0.0
+	 * @var string[]
+	 */
+	private static $valid_providers = [ 'openai', 'gemini', 'claude' ];
+
+	/**
 	 * Get all default settings.
 	 *
 	 * @since 1.0.0
+	 * @since 2.0.0 Added provider, gemini_api_key, claude_api_key.
 	 * @return array Default settings array.
 	 */
 	public static function get_defaults() {
 		return [
 			'openai_api_key' => '',
+			'gemini_api_key' => '',
+			'claude_api_key' => '',
+			'provider' => 'openai',
 			'last_scan_date' => null,
 		];
 	}
@@ -117,6 +129,41 @@ class Settings {
 		$settings = get_option( self::$option_name, [] );
 		$settings['openai_api_key'] = $api_key;
 		update_option( self::$option_name, $settings );
+	}
+
+	/**
+	 * Get the effective vision provider (openai, gemini, or claude).
+	 *
+	 * Defaults to openai when unset or invalid for backwards compatibility.
+	 *
+	 * @since 2.0.0
+	 * @return string Provider slug.
+	 */
+	public static function get_vision_provider() {
+		$settings = get_option( self::$option_name, [] );
+		$provider = isset( $settings['provider'] ) ? $settings['provider'] : 'openai';
+		if ( ! in_array( $provider, self::$valid_providers, true ) ) {
+			return 'openai';
+		}
+		return $provider;
+	}
+
+	/**
+	 * Get the API key for the current vision provider.
+	 *
+	 * @since 2.0.0
+	 * @return string API key or empty string.
+	 */
+	public static function get_vision_api_key() {
+		$provider = self::get_vision_provider();
+		$settings = get_option( self::$option_name, [] );
+		$key_map = [
+			'openai' => 'openai_api_key',
+			'gemini' => 'gemini_api_key',
+			'claude' => 'claude_api_key',
+		];
+		$key_name = $key_map[ $provider ] ?? 'openai_api_key';
+		return $settings[ $key_name ] ?? '';
 	}
 }
 

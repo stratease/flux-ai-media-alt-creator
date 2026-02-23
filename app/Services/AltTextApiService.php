@@ -11,8 +11,8 @@
 namespace FluxAIMediaAltCreator\App\Services;
 
 use FluxAIMediaAltCreator\FluxPlugins\Common\Logger\Logger;
-use FluxAIMediaAltCreator\App\Services\OpenAIService;
 use FluxAIMediaAltCreator\App\Services\MediaScanner;
+use FluxAIMediaAltCreator\App\Services\Vision\VisionProviderFactory;
 
 /**
  * Abstracted service for alt text generation and application API calls.
@@ -50,6 +50,16 @@ class AltTextApiService {
 			self::$instance = new self();
 		}
 		return self::$instance;
+	}
+
+	/**
+	 * Default prompt for vision providers (OpenAI, Gemini, Claude). Centralized so all providers use the same wording.
+	 *
+	 * @since 2.0.0
+	 * @return string Default prompt text for alt text generation.
+	 */
+	public static function get_default_alt_text_prompt() {
+		return __( 'Generate a concise, SEO-friendly alt text for this image that accurately describes its content and context, helpful for screen readers, and no longer than 125 characters. Reply with only the alt text itself: plain text only. Do not use markdown, headers (e.g. "# Alt Text"), labels, or quotes around the text.', 'flux-ai-media-alt-creator' );
 	}
 
 	/**
@@ -100,7 +110,7 @@ class AltTextApiService {
 		 *
 		 * Return a non-null array to override default generation. The array should
 		 * have 'success' (bool) and 'alt_text' (string) keys, and optionally 'error', 'tokens_used', 'cost'.
-		 * Return null to use default OpenAI processing.
+		 * Return null to use configured vision provider (OpenAI, Gemini, or Claude).
 		 *
 		 * @since 1.0.0
 		 * @param null|array $result   Generation result (null to use default).
@@ -117,8 +127,13 @@ class AltTextApiService {
 			] );
 			$result = $intercepted_result;
 		} else {
-			// Use default OpenAI service.
-			$result = OpenAIService::get_instance()->generate_alt_text( $media_url, $attachment_id );
+			// Use configured vision provider (OpenAI, Gemini, or Claude).
+			$result = VisionProviderFactory::get_provider()->generate_alt_text( $media_url, $attachment_id );
+		}
+
+		// Normalize alt text: strip any markdown headers or labels the model may have added.
+		if ( ! empty( $result['alt_text'] ) && is_string( $result['alt_text'] ) ) {
+			$result['alt_text'] = self::sanitize_alt_text_response( $result['alt_text'] );
 		}
 
 		// Update scan status and scan data based on result.
@@ -135,6 +150,22 @@ class AltTextApiService {
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Sanitize model output to plain alt text (strip markdown headers, labels, surrounding quotes).
+	 *
+	 * @since 2.0.0
+	 * @param string $content Raw content from vision API.
+	 * @return string Plain alt text.
+	 */
+	private static function sanitize_alt_text_response( $content ) {
+		$content = trim( $content );
+		// Remove leading markdown headers like "# Alt Text" or "## Alt text" and following newlines.
+		$content = preg_replace( '/^#+\s*Alt\s+Text\s*\n*/iu', '', $content );
+		// Remove common label prefixes (e.g. "Alt text:", "Alt:").
+		$content = preg_replace( '/^(?:Alt\s+text|Alt)\s*:\s*/iu', '', $content );
+		return trim( $content );
 	}
 
 	/**
