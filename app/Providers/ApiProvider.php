@@ -19,11 +19,13 @@ use FluxAIMediaAltCreator\App\Services\MediaScanner;
 use FluxAIMediaAltCreator\App\Services\OpenAIService;
 use FluxAIMediaAltCreator\App\Services\UsageTracker;
 use FluxAIMediaAltCreator\App\Services\AsyncJobService;
+use FluxAIMediaAltCreator\App\Services\ComplianceScanService;
 
 use FluxAIMediaAltCreator\App\Http\Controllers\MediaController;
 use FluxAIMediaAltCreator\App\Http\Controllers\AltTextController;
 use FluxAIMediaAltCreator\App\Http\Controllers\OptionsController;
 use FluxAIMediaAltCreator\App\Http\Controllers\UsageController;
+use FluxAIMediaAltCreator\App\Http\Controllers\ComplianceController;
 
 /**
  * Provider for REST API functionality.
@@ -120,12 +122,21 @@ class ApiProvider {
 		$alt_text_controller = new AltTextController( $this->media_scanner, $this->async_job_service );
 		$options_controller = new OptionsController( $this->settings );
 		$usage_controller = new UsageController( $this->usage_tracker );
+		$compliance_scan_service = ComplianceScanService::get_instance();
+		$compliance_controller = new ComplianceController( $compliance_scan_service );
 
 		// Register routes.
 		$media_controller->register_routes();
 		$alt_text_controller->register_routes();
 		$options_controller->register_routes();
 		$usage_controller->register_routes();
+		$compliance_controller->register_routes();
+
+		// Register action for compliance scan batch (can be invoked by external scheduler).
+		add_action( 'flux_ai_alt_creator/compliance/run_scan_batch', [ $compliance_scan_service, 'run_scan_batch' ], 10, 1 );
+
+		// Reclassify when attachment alt text is updated (core hook) so compliance category stays in sync.
+		add_action( 'updated_post_meta', [ $compliance_scan_service, 'on_attachment_alt_updated' ], 10, 4 );
 
 		/**
 		 * Action to register additional API routes.

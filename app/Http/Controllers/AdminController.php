@@ -15,6 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 // phpcs:enable
 
 use FluxAIMediaAltCreator\App\Services\Settings;
+use FluxAIMediaAltCreator\App\Services\WooCommerceHelper;
 use FluxAIMediaAltCreator\FluxPlugins\Common\Services\MenuService;
 
 /**
@@ -175,6 +176,7 @@ class AdminController {
 			'pluginUrl' => FLUX_AI_MEDIA_ALT_CREATOR_PLUGIN_URL,
 			'tabs' => $registered_tabs,
 			'isProActive' => $is_pro_active,
+			'isWooCommerceActive' => WooCommerceHelper::is_active(),
 		] );
 
 		// Enqueue WordPress admin styles.

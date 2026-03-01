@@ -8,6 +8,7 @@ import { FluxAppProvider, PageLayout } from '@flux-plugins-common/components';
 import OverviewPage from '@flux-ai-media-alt-creator/pages/OverviewPage';
 import MediaPage from '@flux-ai-media-alt-creator/pages/MediaPage';
 import SettingsPage from '@flux-ai-media-alt-creator/pages/SettingsPage';
+import CompliancePage from '@flux-ai-media-alt-creator/pages/CompliancePage';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -33,6 +34,7 @@ const getAllTabs = () => {
   const allTabs = [
     { slug: 'overview', label: __('Overview', 'flux-ai-media-alt-creator'), path: '/overview' },
     { slug: 'media', label: __('Media', 'flux-ai-media-alt-creator'), path: '/media' },
+    { slug: 'compliance', label: __('Compliance', 'flux-ai-media-alt-creator'), path: '/compliance' },
     { slug: 'settings', label: __('Settings', 'flux-ai-media-alt-creator'), path: '/settings' },
     ...phpTabs.map(tab => ({
       slug: tab.slug,
@@ -268,10 +270,10 @@ const App = () => {
               <Routes>
                 <Route path="/overview" element={<OverviewPage />} />
                 <Route path="/media" element={<MediaPage />} />
-                <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/compliance" element={<CompliancePage />} />
                 {/* Only create routes for extension tabs (not default tabs) */}
                 {allTabs
-                  .filter(tab => !['overview', 'media', 'settings'].includes(tab.slug))
+                  .filter(tab => !['overview', 'media', 'settings', 'compliance'].includes(tab.slug))
                   .map((tab) => {
                     const element = renderRegisteredTab(tab);
                     // Only create route if we have a valid element (should always be true, but safety check)
@@ -287,6 +289,7 @@ const App = () => {
                     return null;
                   })
                   .filter(Boolean)}
+                <Route path="/settings" element={<SettingsPage />} />
                 <Route path="/" element={<Navigate to="/overview" replace />} />
               </Routes>
             </PageLayout>

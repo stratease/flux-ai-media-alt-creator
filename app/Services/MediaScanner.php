@@ -9,6 +9,8 @@
 namespace FluxAIMediaAltCreator\App\Services;
 
 use FluxAIMediaAltCreator\FluxPlugins\Common\Logger\Logger;
+use FluxAIMediaAltCreator\App\Services\ComplianceScanService;
+use FluxAIMediaAltCreator\App\Services\WooCommerceHelper;
 
 /**
  * Service to scan WordPress media library for media files without alt text.
@@ -140,28 +142,51 @@ class MediaScanner {
 			}
 		}
 
-		// Build query arguments.
-		$query_args = [
-			'post_type' => 'attachment',
-			'post_mime_type' => $mime_types,
-			'post_status' => 'inherit',
-			'posts_per_page' => $per_page,
-			'paged' => $page,
-			'orderby' => 'date',
-			'order' => 'DESC',
-			'meta_query' => [
-				'relation' => 'OR',
-				[
-					'key' => '_wp_attachment_image_alt',
-					'compare' => 'NOT EXISTS',
-				],
-				[
-					'key' => '_wp_attachment_image_alt',
-					'value' => '',
-					'compare' => '=',
-				],
-			],
-		];
+		// Build query arguments. When alt_category is set and not 'all', query by compliance category (and optionally WooCommerce).
+		$alt_category    = isset( $additional_params['alt_category'] ) ? $additional_params['alt_category'] : '';
+		$woocommerce_only = ! empty( $additional_params['woocommerce_only'] );
+		$filter_by_category = ( $alt_category !== '' && $alt_category !== 'all' );
+		$filter_woocommerce = ( $alt_category === 'woocommerce' || $woocommerce_only );
+
+		if ( $filter_by_category || $filter_woocommerce ) {
+			$query_args = [
+				'post_type'      => 'attachment',
+				'post_mime_type'  => $mime_types,
+				'post_status'    => 'inherit',
+				'posts_per_page' => $per_page,
+				'paged'          => $page,
+				'orderby'        => 'date',
+				'order'          => 'DESC',
+			];
+			if ( $alt_category !== 'woocommerce' && $filter_by_category ) {
+				$query_args['meta_query'] = [
+					[
+						'key'     => ComplianceScanService::ALT_CATEGORY_META_KEY,
+						'value'   => sanitize_text_field( $alt_category ),
+						'compare' => '=',
+					],
+				];
+			}
+			if ( $filter_woocommerce ) {
+				$wc_ids = WooCommerceHelper::get_product_attachment_ids();
+				if ( empty( $wc_ids ) ) {
+					$query_args['post__in'] = [ 0 ];
+				} else {
+					$query_args['post__in'] = $wc_ids;
+				}
+			}
+		} else {
+			// All: no category filter – show all image attachments.
+			$query_args = [
+				'post_type'      => 'attachment',
+				'post_mime_type' => $mime_types,
+				'post_status'    => 'inherit',
+				'posts_per_page' => $per_page,
+				'paged'          => $page,
+				'orderby'        => 'date',
+				'order'          => 'DESC',
+			];
+		}
 
 		// Add search if provided.
 		if ( ! empty( $search ) ) {
@@ -261,38 +286,45 @@ class MediaScanner {
 	 *
 	 * @since 1.0.0
 	 * @since 1.1.0 Changed from 'ai_status' to 'scan_status' using dedicated meta field.
+	 * @since 3.0.0 Added alt_category and current_alt for compliance UI.
 	 * @param \WP_Post $post Post object.
 	 * @return array Media data.
 	 */
 	private function prepare_media_data( $post ) {
 		$attachment_id = $post->ID;
-		
+
 		// Get scan data from post meta.
 		$scan_data = get_post_meta( $attachment_id, '_flux_ai_alt_creator_scan_data', true );
 		if ( ! is_array( $scan_data ) ) {
 			$scan_data = [];
 		}
-		
+
 		// Get media URLs.
 		$thumbnail_url = wp_get_attachment_image_url( $attachment_id, 'thumbnail' );
-		$full_url = wp_get_attachment_url( $attachment_id );
-		
+		$full_url      = wp_get_attachment_url( $attachment_id );
+
 		// Get MIME type.
 		$mime_type = get_post_mime_type( $attachment_id );
-		
+
+		// Compliance: current alt and category (when available).
+		$current_alt  = get_post_meta( $attachment_id, '_wp_attachment_image_alt', true );
+		$alt_category = get_post_meta( $attachment_id, ComplianceScanService::ALT_CATEGORY_META_KEY, true );
+
 		return [
-			'id' => $attachment_id,
-			'title' => $post->post_title,
-			'filename' => basename( get_attached_file( $attachment_id ) ),
-			'mime_type' => $mime_type ? $mime_type : '',
-			'thumbnail_url' => $thumbnail_url ? $thumbnail_url : '',
-			'full_url' => $full_url ? $full_url : '',
-			'edit_url' => admin_url( "post.php?post={$attachment_id}&action=edit" ),
-			'scan_status' => $this->get_scan_status( $attachment_id ),
+			'id'                   => $attachment_id,
+			'title'                => $post->post_title,
+			'filename'             => basename( get_attached_file( $attachment_id ) ),
+			'mime_type'            => $mime_type ? $mime_type : '',
+			'thumbnail_url'        => $thumbnail_url ? $thumbnail_url : '',
+			'full_url'             => $full_url ? $full_url : '',
+			'edit_url'             => admin_url( "post.php?post={$attachment_id}&action=edit" ),
+			'scan_status'          => $this->get_scan_status( $attachment_id ),
 			'recommended_alt_text' => $scan_data['recommended_alt_text'] ?? '',
-			'applied' => $scan_data['applied'] ?? false,
-			'error_message' => $scan_data['error_message'] ?? '',
-			'scan_date' => $scan_data['scan_date'] ?? null,
+			'applied'              => $scan_data['applied'] ?? false,
+			'error_message'        => $scan_data['error_message'] ?? '',
+			'scan_date'            => $scan_data['scan_date'] ?? null,
+			'current_alt'          => is_string( $current_alt ) ? $current_alt : '',
+			'alt_category'         => is_string( $alt_category ) ? $alt_category : '',
 		];
 	}
 

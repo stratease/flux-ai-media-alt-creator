@@ -3,7 +3,7 @@
  * Plugin Name: Flux AI Media Alt Creator by Flux Plugins
  * Plugin URI: https://fluxplugins.com/ai-media-alt-creator
  * Description: Generate AI-powered alt text using OpenAI, Google Gemini, or Anthropic Claude vision APIs.
- * Version: 2.0.0
+ * Version: 3.0.0
  * Author: Flux Plugins
  * Author URI: https://fluxplugins.com
  * License: GPL-2.0+
@@ -29,7 +29,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants.
-define( 'FLUX_AI_MEDIA_ALT_CREATOR_VERSION', '2.0.0' );
+define( 'FLUX_AI_MEDIA_ALT_CREATOR_VERSION', '3.0.0' );
 define( 'FLUX_AI_MEDIA_ALT_CREATOR_PLUGIN_FILE', __FILE__ );
 define( 'FLUX_AI_MEDIA_ALT_CREATOR_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'FLUX_AI_MEDIA_ALT_CREATOR_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -273,6 +273,9 @@ function flux_ai_media_alt_creator_uninstall() {
 		'flux_ai_alt_creator_usage_current_month',
 		'flux_ai_media_alt_creator_version',
 		'flux_ai_media_alt_creator_activation_redirect',
+		'flux_ai_alt_creator_compliance_last_scan',
+		'flux_ai_alt_creator_compliance_scan_offset',
+		'flux_ai_alt_creator_compliance_alt_counts',
 	];
 
 	foreach ( $options as $option ) {

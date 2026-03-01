@@ -12,6 +12,8 @@ namespace FluxAIMediaAltCreator\App\Services;
 
 use FluxAIMediaAltCreator\FluxPlugins\Common\Logger\Logger;
 use FluxAIMediaAltCreator\App\Services\MediaScanner;
+use FluxAIMediaAltCreator\App\Services\ComplianceScanService;
+use FluxAIMediaAltCreator\App\Services\WooCommerceHelper;
 use FluxAIMediaAltCreator\App\Services\Vision\VisionProviderFactory;
 
 /**
@@ -60,6 +62,77 @@ class AltTextApiService {
 	 */
 	public static function get_default_alt_text_prompt() {
 		return __( 'Generate a concise, SEO-friendly alt text for this image that accurately describes its content and context, helpful for screen readers, and no longer than 125 characters. Reply with only the alt text itself: plain text only. Do not use markdown, headers (e.g. "# Alt Text"), labels, or quotes around the text.', 'flux-ai-media-alt-creator' );
+	}
+
+	/**
+	 * Build context string for alt text prompt (WooCommerce product or parent post).
+	 *
+	 * For WooCommerce product images: product title, 1–2 variation attributes, category if useful.
+	 * For non-WooCommerce: parent post title when available.
+	 * Used to improve alt text relevance. Prompt constraints: 70–155 characters, no "image of"/"photo of", no quotes, no keyword stuffing.
+	 *
+	 * @since 3.0.0
+	 * @param int $attachment_id Attachment ID.
+	 * @return string Context string (empty if none).
+	 */
+	public static function get_attachment_context_for_prompt( $attachment_id ) {
+		$attachment_id = absint( $attachment_id );
+		if ( ! $attachment_id ) {
+			return '';
+		}
+		$post = get_post( $attachment_id );
+		if ( ! $post || ! $post->post_parent ) {
+			return '';
+		}
+		$parent = get_post( $post->post_parent );
+		if ( ! $parent ) {
+			return '';
+		}
+		if ( WooCommerceHelper::is_active() && $parent->post_type === 'product' ) {
+			$title = $parent->post_title;
+			$product = function_exists( 'wc_get_product' ) ? wc_get_product( $parent->ID ) : null;
+			$parts = [ $title ];
+			if ( $product && is_callable( [ $product, 'get_attribute' ] ) ) {
+				$attrs = [];
+				foreach ( [ 'pa_color', 'pa_size', 'pa_material', 'color', 'size', 'material' ] as $attr ) {
+					$val = $product->get_attribute( $attr );
+					if ( $val !== '' && count( $attrs ) < 2 ) {
+						$attrs[] = $val;
+					}
+				}
+				if ( ! empty( $attrs ) ) {
+					$parts[] = implode( ', ', $attrs );
+				}
+			}
+			$category = '';
+			if ( $product && is_callable( [ $product, 'get_category_ids' ] ) ) {
+				$cat_ids = $product->get_category_ids();
+				if ( ! empty( $cat_ids ) ) {
+					$term = get_term( $cat_ids[0], 'product_cat' );
+					if ( $term && ! is_wp_error( $term ) ) {
+						$category = $term->name;
+					}
+				}
+			}
+			if ( $category !== '' ) {
+				$parts[] = $category;
+			}
+			$context = implode( ' — ', $parts );
+			return sprintf(
+				/* translators: %s: product/parent context */
+				__( 'Context: %s.', 'flux-ai-media-alt-creator' ),
+				$context
+			);
+		}
+		$context = $parent->post_title;
+		if ( $context === '' ) {
+			return '';
+		}
+		return sprintf(
+			/* translators: %s: parent post title */
+			__( 'Context: Part of the content "%s".', 'flux-ai-media-alt-creator' ),
+			$context
+		);
 	}
 
 	/**
@@ -190,10 +263,21 @@ class AltTextApiService {
 			];
 		}
 
+		// Allow empty string: "mark decorative" sets alt to empty per WCAG.
+		if ( $alt_text === '' ) {
+			update_post_meta( $attachment_id, '_wp_attachment_image_alt', '' );
+			update_post_meta( $attachment_id, ComplianceScanService::ALT_CATEGORY_META_KEY, 'decorative' );
+			MediaScanner::get_instance()->update_scan_data( $attachment_id, [
+				'applied' => true,
+				'recommended_alt_text' => '',
+			] );
+			return [ 'success' => true, 'alt_text' => '' ];
+		}
+
 		// Get alt text from scan data if not provided.
 		if ( empty( $alt_text ) ) {
 			$scan_data = MediaScanner::get_instance()->get_scan_data( $attachment_id );
-			$alt_text = $scan_data['recommended_alt_text'] ?? '';
+			$alt_text  = $scan_data['recommended_alt_text'] ?? '';
 		}
 
 		if ( empty( $alt_text ) ) {
@@ -229,7 +313,7 @@ class AltTextApiService {
 			] );
 			$result = $intercepted_result;
 		} else {
-			// Use default WordPress meta update.
+			// Use default WordPress meta update (empty string is valid for decorative images).
 			update_post_meta( $attachment_id, '_wp_attachment_image_alt', $alt_text );
 			$result = [
 				'success' => true,
@@ -243,6 +327,8 @@ class AltTextApiService {
 				'applied' => true,
 				'recommended_alt_text' => $alt_text,
 			] );
+			// Reclassify so compliance category (e.g. missing → descriptive) is updated immediately.
+			ComplianceScanService::get_instance()->reclassify_attachments( [ $attachment_id ] );
 		}
 
 		return $result;

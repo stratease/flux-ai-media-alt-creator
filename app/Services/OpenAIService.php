@@ -132,6 +132,12 @@ class OpenAIService implements VisionProviderInterface {
 		 */
 		$prompt = apply_filters( 'flux_ai_alt_creator/openai_service/get_alt_text_prompt', $prompt, $media_url, $media_id );
 
+		// Append context (WooCommerce product or parent post) when available.
+		$context = AltTextApiService::get_attachment_context_for_prompt( $media_id );
+		if ( $context !== '' ) {
+			$prompt .= "\n\n" . $context;
+		}
+
 		// Use OpenAI Vision API with GPT-4o-mini.
 		$response = $api_client->generate_vision_content( $media_url, $prompt, 'gpt-4o-mini', 150 );
 

@@ -4,11 +4,11 @@ Tags: media, alt text, ai, images, seo
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 8.0
-Stable tag: 2.0.0
+Stable tag: 3.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-AI-powered alt text for WordPress media. Batch process images with OpenAI, Google Gemini, or Anthropic Claude vision APIs. Improves accessibility and SEO.
+AI-powered alt text for WordPress media. Batch process images with OpenAI, Gemini, or Claude. Improves accessibility and SEO.
 
 == Description ==
 
@@ -95,6 +95,9 @@ The plugin supports all standard WordPress image formats, including JPEG, PNG, G
 
 == Changelog ==
 
+= 3.0.0 =
+* Major feature update, adding a SEO / Accessibility compliance dashboard.
+
 = 2.0.0 =
 * Fixed edge case where alt text preview would not update after being edited.
 * Added integration for Gemini and Claude API's.
@@ -104,11 +107,6 @@ The plugin supports all standard WordPress image formats, including JPEG, PNG, G
 * Provider-specific API key fields and setup links: OpenAI, [Gemini](https://aistudio.google.com/apikey), [Claude](https://console.anthropic.com/settings/keys).
 * Usage Statistics tooltip shows which provider and model are used; cost estimates are calculated correctly for each model.
 * Backwards compatible: existing installs continue to use OpenAI by default. Pro plugin integration unchanged.
-
-= 1.2.1 =
-* Fixed admin notice display positioning.
-* Refactored to a factory service for alt text generators.
-* Some UI clean up and optimization for new users.
 
 
 == Upgrade Notice ==

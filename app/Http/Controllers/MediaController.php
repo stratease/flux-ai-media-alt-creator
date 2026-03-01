@@ -151,6 +151,7 @@ class MediaController extends BaseController {
 	 * Sanitize additional search filters.
 	 *
 	 * @since 1.0.0
+	 * @since 3.0.0 Added alt_category and woocommerce_only for compliance filtering.
 	 * @param array $filters Raw filters from request.
 	 * @return array Sanitized filters.
 	 */
@@ -160,6 +161,17 @@ class MediaController extends BaseController {
 		// Sanitize media_types array if provided.
 		if ( isset( $filters['media_types'] ) && is_array( $filters['media_types'] ) ) {
 			$sanitized['media_types'] = array_map( 'sanitize_text_field', $filters['media_types'] );
+		}
+
+		// Compliance alt category filter (all, missing, placeholder, duplicate, descriptive, contextual, decorative, woocommerce).
+		$allowed_categories = [ 'all', 'missing', 'placeholder', 'duplicate', 'descriptive', 'contextual', 'decorative', 'woocommerce' ];
+		if ( isset( $filters['alt_category'] ) && in_array( sanitize_text_field( $filters['alt_category'] ), $allowed_categories, true ) ) {
+			$sanitized['alt_category'] = sanitize_text_field( $filters['alt_category'] );
+		}
+
+		// Restrict to WooCommerce product images only.
+		if ( isset( $filters['woocommerce_only'] ) ) {
+			$sanitized['woocommerce_only'] = (bool) $filters['woocommerce_only'];
 		}
 
 		// Allow plugins to define their own filter sanitization.

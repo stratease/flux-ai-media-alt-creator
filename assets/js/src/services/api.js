@@ -135,6 +135,29 @@ class ApiService {
   async getUsage() {
     return this.request('/usage');
   }
+
+  // Compliance endpoints
+  async getComplianceSummary() {
+    return this.request('/compliance/summary');
+  }
+
+  async runComplianceScan() {
+    return this.request('/compliance/scan', {
+      method: 'POST',
+    });
+  }
+
+  /**
+   * Set compliance alt category for media. Use 'decorative' to mark as decorative; use '' to re-evaluate and assign category from current alt (e.g. unmark).
+   * @param {number[]} mediaIds Attachment IDs.
+   * @param {string} altCategory 'decorative' or '' (reclassify).
+   */
+  async setAltCategory(mediaIds, altCategory) {
+    return this.request('/compliance/set-category', {
+      method: 'POST',
+      body: JSON.stringify({ media_ids: mediaIds, alt_category: altCategory == null ? '' : String(altCategory) }),
+    });
+  }
 }
 
 // Export singleton instance

@@ -82,6 +82,10 @@ class ClaudeService implements VisionProviderInterface {
 
 		$prompt = AltTextApiService::get_default_alt_text_prompt();
 		$prompt = apply_filters( 'flux_ai_alt_creator/openai_service/get_alt_text_prompt', $prompt, $media_url, $media_id );
+		$context = AltTextApiService::get_attachment_context_for_prompt( $media_id );
+		if ( $context !== '' ) {
+			$prompt .= "\n\n" . $context;
+		}
 
 		$response = $api_client->generate_vision_content( $media_url, $prompt, 150 );
 
