@@ -1,6 +1,6 @@
 <?php
 /**
- * Action Scheduler service for Flux AI Media Alt Creator.
+ * Action Scheduler service for Flux AI Alt Text & Accessibility Audit.
  *
  * Manages Action Scheduler initialization and provides methods for scheduling
  * async alt text generation actions.

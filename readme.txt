@@ -1,56 +1,78 @@
-=== Flux AI Media Alt Creator by Flux Plugins ===
+=== Flux AI Alt Text & Accessibility Audit by Flux Plugins ===
 Contributors: edaniels
-Tags: media, alt text, ai, images, seo
+Tags: alt text, accessibility, image seo, ai, wcag, media library, woocommerce
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 8.0
-Stable tag: 3.0.0
+Stable tag: 3.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-AI-powered alt text for WordPress media. Batch process images with OpenAI, Gemini, or Claude. Improves accessibility and SEO.
+Missing or weak alt text hurts SEO rankings and can create accessibility gaps. Scan and fix your entire media library in minutes with the help of AI.
 
 == Description ==
 
-### AI-Powered Alt Text for WordPress Media
+Missing or weak alt text on images hurts both SEO and accessibility. Flux AI Alt Text & Accessibility Audit helps you find and fix those gaps across your entire media library with an on-demand Compliance Audit Dashboard and AI-generated alt text.
 
-Flux AI Media Alt Creator generates descriptive, SEO-friendly alt text for your WordPress media using your choice of vision API: **OpenAI** (GPT-4o-mini), **Google Gemini** (gemini-2.5-flash-lite), or **Anthropic Claude** (claude-haiku-4-5-20251001). Select multiple images, process them in a batch, then review the AI-generated recommendations. Edit any suggestion before saving, or apply as-is with one click. Transform accessibility compliance from a time-consuming task into a streamlined workflow. Bring your own API key for the provider you choose.
+= NEW – Compliance Dashboard =
 
-**Batch processing:** Select multiple media files and generate alt text for all of them at once. Results appear as recommendations you can edit or apply.
+Scan your entire media library on demand. The Compliance Dashboard shows a coverage score and categorizes images by risk: missing alt text, placeholder or generic text, duplicates, and descriptive or contextual alt. Filter by category and fix issues in bulk. Run a full scan to see which images need attention, which are marked decorative, and which already have solid alt text—then generate, apply, or mark decorative in one place.
 
-**Multiple vision providers (2.0.0):** Choose OpenAI, Google Gemini, or Anthropic Claude in Settings. The plugin uses the selected provider's vision API to analyze images and generate alt text. Cost estimates in the Overview tab are calculated correctly for each model.
+= AI Alt Text Generation =
 
-**API key required.** You need an API key for your chosen provider. Get keys here: [OpenAI](https://platform.openai.com/settings/organization/api-keys), [Google Gemini](https://aistudio.google.com/apikey), [Anthropic Claude](https://console.anthropic.com/settings/keys). Image data is sent to the selected provider when you generate alt text. Please review each provider's privacy and terms before use.
+Generate descriptive, context-aware alt text in bulk using your choice of **OpenAI**, **Google Gemini**, or **Anthropic Claude**. Review each recommendation before applying. The plugin can use post or product context when available. WooCommerce product images are supported; alt text can include product name and attributes. Bring your own API key for the provider you choose. Get keys: [OpenAI](https://platform.openai.com/settings/organization/api-keys), [Google Gemini](https://aistudio.google.com/apikey), [Anthropic Claude](https://console.anthropic.com/settings/keys).
 
-Looking for automated alt text generation without managing API keys? Check out [Flux AI Media Alt Creator Pro](https://fluxplugins.com/ai-media-alt-creator-pro/), which includes automation features and only requires a Flux Suite license.
+= Built for Agencies & Site Owners =
 
-### Professional-Grade AI Alt Text Generation
+Fix hundreds or thousands of images quickly. Reduce accessibility risk exposure and improve media SEO coverage with bulk generation, risk-based filtering, and one-click mark-as-decorative. The plugin aligns with WCAG 2.1 guidance for non-text content; it does not provide legal certification or guarantee full WCAG compliance.
 
-**Key features:**
+= Works With =
 
-* **Batch processing** – Process multiple images at once with background job processing
-* **Edit before apply** – Review, edit, or apply each recommendation as-is
-* **Smart scanning** – Identify media files missing alt text across your library
-* **Multiple vision APIs (2.0.0)** – OpenAI (gpt-4o-mini), Google Gemini (gemini-2.5-flash-lite), or Anthropic Claude (claude-haiku-4-5) for accurate, context-aware descriptions
+* WooCommerce (product images)
+* Any WordPress theme
+* Major SEO plugins
 
-**Perfect for:** Site owners improving accessibility, content creators with large media libraries, SEO-focused sites, and anyone meeting WCAG guidelines.
+Looking for automated alt text without managing API keys? [Flux AI Alt Text & Accessibility Audit Pro](https://fluxplugins.com/ai-media-alt-creator-pro/) includes automation and requires only a Flux Suite license.
 
-### How it works
+= Core Features =
 
-1. **Scan** – Identify images without alt text in your media library
-2. **Select & generate** – Choose one or many images; the plugin sends them to your chosen provider's vision API for analysis
-3. **Review** – See AI-generated alt text for each image
-4. **Edit or apply** – Adjust any recommendation, then apply individually or in bulk
-
-Pricing is usage-based and shown in the Overview tab. Cost estimates are calculated per model (OpenAI, Gemini, Claude). Usage tracking is informational only—no feature restrictions.
+* On-demand media library scan
+* Alt Text Coverage Score
+* Missing, Placeholder, and Duplicate detection
+* AI-generated descriptive alt text
+* Bulk generate and apply
+* Mark images as decorative (WCAG best practice)
+* WooCommerce product image support
+* Context-aware generation using post/product data
+* Lightweight and WordPress-native
 
 == Frequently Asked Questions ==
+
+= What is the Compliance Dashboard? =
+
+The Compliance Dashboard scans your media library and categorizes alt text into missing, placeholder, duplicate, descriptive, or contextual groups. It helps you identify and fix accessibility and SEO risks quickly.
+
+= Does this plugin guarantee WCAG compliance? =
+
+No plugin can guarantee full WCAG compliance. This plugin helps improve alt text coverage and aligns with WCAG 2.1 guidance for non-text content.
+
+= Can I bulk fix alt text? =
+
+Yes. You can filter by risk category and generate alt text in bulk directly from the plugin's Media tab.
+
+= Does it support WooCommerce products? =
+
+Yes. Product images are detected automatically and alt text can include product name and attributes.
+
+= Which AI models are used? =
+
+The plugin uses one vision model per provider: **OpenAI** (gpt-4o-mini), **Google Gemini** (gemini-2.5-flash-lite), or **Anthropic Claude** (claude-haiku-4-5). You choose the provider in Settings. Cost estimates in the Overview tab are calculated for the active model.
 
 = Do I need an API key? =
 
 Yes. You need an API key for the provider you select in Settings: **OpenAI** ([get key](https://platform.openai.com/settings/organization/api-keys)), **Google Gemini** ([get key](https://aistudio.google.com/apikey)), or **Anthropic Claude** ([get key](https://console.anthropic.com/settings/keys)). The plugin uses that provider's vision API to analyze images and generate alt text.
 
-If you prefer not to manage API keys, consider [Flux AI Media Alt Creator Pro](https://fluxplugins.com/ai-media-alt-creator-pro/), which includes automation and only requires a Flux Suite license.
+If you prefer not to manage API keys, consider [Flux AI Alt Text & Accessibility Audit Pro](https://fluxplugins.com/ai-media-alt-creator-pro/), which includes automation and only requires a Flux Suite license.
 
 = How does the vision API integration work? =
 
@@ -62,13 +84,15 @@ Yes. When you generate alt text, image data is sent to the provider you selected
 
 = How much does it cost? =
 
-Cost depends on the provider and model you choose. The Overview tab shows usage and estimated cost; calculations are correct for each model (OpenAI gpt-4o-mini, Google Gemini 2.5 Flash-Lite, Anthropic Claude Haiku 4.5). You are charged by the provider based on their pricing. A tooltip on the Usage Statistics section shows which provider and model are used for the estimates.
+Cost depends on the provider and model you choose. The Overview tab shows usage and estimated cost for the active provider's model. You are charged by the provider based on their pricing. A tooltip on the Usage Statistics section shows which provider and model are used.
+
+**Important:** The plugin's usage tracking and cost estimation are for your information only. They do not limit or restrict any features.
 
 **Important:** The plugin's usage tracking and cost estimation are for your information only. They do not limit or restrict any features.
 
 = Is there a Pro version with automation? =
 
-Yes! [Flux AI Media Alt Creator Pro](https://fluxplugins.com/ai-media-alt-creator-pro/) includes automated alt text generation features and doesn't require an OpenAI API key - all you need is a Flux Suite license. The Pro version automatically processes new media uploads and can schedule recurring processing of existing media. [Learn more about Flux Suite licenses here](https://fluxplugins.com/).
+Yes! [Flux AI Alt Text & Accessibility Audit Pro](https://fluxplugins.com/ai-media-alt-creator-pro/) includes automated alt text generation features and doesn't require an OpenAI API key - all you need is a Flux Suite license. The Pro version automatically processes new media uploads and can schedule recurring processing of existing media. [Learn more about Flux Suite licenses here](https://fluxplugins.com/).
 
 = Does this work with existing images? =
 
@@ -80,8 +104,8 @@ The plugin supports all standard WordPress image formats, including JPEG, PNG, G
 
 == Screenshots ==
 
-1. Overview dashboard displaying usage statistics and Open AI API cost tracking (informational only - no feature restrictions)
-2. Media interface with batch processing, scan results, and editable alt text recommendations you can apply as-is or customize
+1. Overview dashboard with usage statistics and compliance scan
+2. Media interface with batch processing, scan results, and editable alt text recommendations
 
 == Installation ==
 
@@ -95,24 +119,31 @@ The plugin supports all standard WordPress image formats, including JPEG, PNG, G
 
 == Changelog ==
 
+= 3.1.0 =
+* Reposition and renamed focus of plugin to WCAG Compliance and WooCommerce integration. Now named: Flux AI Alt Text & Accessibility Audit.
+
 = 3.0.0 =
-* Major feature update, adding a SEO / Accessibility compliance dashboard.
+* **Compliance Dashboard (major update):** New dedicated compliance experience to help you meet accessibility and SEO goals.
+* **Overview & Compliance pages:** Central dashboard with usage stats, one-click compliance scan, and a dedicated Compliance tab for managing alt text status across your media library.
+* **Compliance scan:** Run a full scan to see which images have alt text, which are missing it, and which are marked decorative. Filter by status and fix in bulk.
+* **Set category / reclassify:** Mark images as decorative or reclassify after editing alt text. Single set-category API supports both explicit categories and reclassification.
+* **Media scanner "All" filter:** View all image attachments with accurate counts; filter by compliance status (e.g. missing, has alt, decorative).
+* **Improved Media UI:** Clearer column labels (Alt Text, Proposed Alt Text, Status), icon actions with tooltips for Generate, Apply, Mark Decorative, and Unmark Decorative.
+* **Bulk actions:** Generate AI alt text, apply recommendations, and manage decorative status from the Compliance and Media views with reliable bulk handling.
+* **Immediate reclassification:** When you apply alt text or change category, compliance state updates right away so the dashboard stays in sync.
 
 = 2.0.0 =
 * Fixed edge case where alt text preview would not update after being edited.
 * Added integration for Gemini and Claude API's.
 
-= 2.0.0 =
-* **Multiple vision providers:** Added Google Gemini (gemini-2.5-flash-lite) and Anthropic Claude (claude-haiku-4-5) alongside OpenAI (gpt-4o-mini). Choose your provider in Settings.
-* Provider-specific API key fields and setup links: OpenAI, [Gemini](https://aistudio.google.com/apikey), [Claude](https://console.anthropic.com/settings/keys).
-* Usage Statistics tooltip shows which provider and model are used; cost estimates are calculated correctly for each model.
-* Backwards compatible: existing installs continue to use OpenAI by default. Pro plugin integration unchanged.
-
 
 == Upgrade Notice ==
 
+= 3.0.0 =
+Major update: new Compliance Dashboard to streamline accessibility and SEO. Run compliance scans, see which images need alt text or are decorative, filter and fix in bulk, and keep everything in sync. Overview and Compliance tabs plus improved Media UI make it easier to meet WCAG and SEO goals.
+
 = 2.0.0 =
-Major update: choose OpenAI, Google Gemini, or Anthropic Claude for alt text generation. Existing sites keep using OpenAI by default. Cost estimates and Usage Statistics tooltip reflect the active provider.
+Major update: choose OpenAI, Google Gemini, or Anthropic Claude for alt text generation. Added integration with Google Gemini and Anthropic Claude. Existing sites keep using OpenAI by default. Cost estimates and Usage Statistics tooltip reflect the active provider.
 
 = 1.1.0 =
 Update includes performance improvements, better batch processing efficiency, and enhanced compatibility with the Pro plugin. The scan status field has been renamed for clarity, but existing data remains compatible.
@@ -149,7 +180,7 @@ Data is only sent when you explicitly request alt text generation. No automatic 
 
 == Privacy Policy ==
 
-Flux AI Media Alt Creator integrates with one of OpenAI, Google Gemini, or Anthropic Claude (your choice in Settings) to analyze images and generate alt text. When you generate alt text, image data is sent to the selected provider for processing.
+Flux AI Alt Text & Accessibility Audit integrates with one of OpenAI, Google Gemini, or Anthropic Claude (your choice in Settings) to analyze images and generate alt text. When you generate alt text, image data is sent to the selected provider for processing.
 
 **View our full privacy policy**: [https://fluxplugins.com/privacy-policy/](https://fluxplugins.com/privacy-policy/)
 

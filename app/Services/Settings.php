@@ -1,6 +1,6 @@
 <?php
 /**
- * Centralized settings management for Flux AI Media Alt Creator plugin.
+ * Centralized settings management for Flux AI Alt Text & Accessibility Audit plugin.
  *
  * @package FluxAIMediaAltCreator
  * @since 1.0.0

@@ -1,5 +1,5 @@
 /**
- * API service for Flux AI Media Alt Creator WordPress plugin using WordPress apiFetch
+ * API service for Flux AI Alt Text & Accessibility Audit WordPress plugin using WordPress apiFetch
  */
 
 import apiFetch from '@wordpress/api-fetch';

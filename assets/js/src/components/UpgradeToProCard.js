@@ -36,7 +36,7 @@ const UpgradeToProCard = ({ variant = 'settings', showCaption = variant === 'set
   const isOverview = variant === 'overview';
   const introText = isOverview
     ? __('Skip token-based fees. Get a flat rate with premium features across all Flux Suite plugins:', 'flux-ai-media-alt-creator')
-    : __('Get more powerful features with Flux AI Media Alt Creator Pro:', 'flux-ai-media-alt-creator');
+    : __('Get more powerful features with Flux AI Alt Text & Accessibility Audit Pro:', 'flux-ai-media-alt-creator');
   const features = isOverview ? OVERVIEW_FEATURES : SETTINGS_FEATURES;
 
   return (

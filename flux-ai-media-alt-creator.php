@@ -1,9 +1,9 @@
 <?php
 /**
- * Plugin Name: Flux AI Media Alt Creator by Flux Plugins
+ * Plugin Name: Flux AI Alt Text & Accessibility Audit by Flux Plugins
  * Plugin URI: https://fluxplugins.com/ai-media-alt-creator
  * Description: Generate AI-powered alt text using OpenAI, Google Gemini, or Anthropic Claude vision APIs.
- * Version: 3.0.0
+ * Version: 3.1.0
  * Author: Flux Plugins
  * Author URI: https://fluxplugins.com
  * License: GPL-2.0+
@@ -29,7 +29,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants.
-define( 'FLUX_AI_MEDIA_ALT_CREATOR_VERSION', '3.0.0' );
+define( 'FLUX_AI_MEDIA_ALT_CREATOR_VERSION', '3.1.0' );
 define( 'FLUX_AI_MEDIA_ALT_CREATOR_PLUGIN_FILE', __FILE__ );
 define( 'FLUX_AI_MEDIA_ALT_CREATOR_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'FLUX_AI_MEDIA_ALT_CREATOR_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -63,7 +63,7 @@ function flux_ai_media_alt_creator_php_version_notice() {
 			<?php
 			printf(
 				/* translators: 1: Current PHP version, 2: Required PHP version */
-				esc_html__( 'Flux AI Media Alt Creator requires PHP %2$s or higher. You are running PHP %1$s.', 'flux-ai-media-alt-creator' ),
+				esc_html__( 'Flux AI Alt Text & Accessibility Audit requires PHP %2$s or higher. You are running PHP %1$s.', 'flux-ai-media-alt-creator' ),
 				esc_html( PHP_VERSION ),
 				'8.0'
 			);
@@ -86,7 +86,7 @@ function flux_ai_media_alt_creator_wp_version_notice() {
 			<?php
 			printf(
 				/* translators: 1: Current WordPress version, 2: Required WordPress version */
-				esc_html__( 'Flux AI Media Alt Creator requires WordPress %2$s or higher. You are running WordPress %1$s.', 'flux-ai-media-alt-creator' ),
+				esc_html__( 'Flux AI Alt Text & Accessibility Audit requires WordPress %2$s or higher. You are running WordPress %1$s.', 'flux-ai-media-alt-creator' ),
 				esc_html( $wp_version ),
 				'5.8'
 			);
@@ -115,7 +115,7 @@ function flux_ai_media_alt_creator_composer_notice() {
 	?>
 	<div class="notice notice-error">
 		<p>
-			<?php esc_html_e( 'Flux AI Media Alt Creator requires Composer dependencies. Please run "composer install" in the plugin directory.', 'flux-ai-media-alt-creator' ); ?>
+			<?php esc_html_e( 'Flux AI Alt Text & Accessibility Audit requires Composer dependencies. Please run "composer install" in the plugin directory.', 'flux-ai-media-alt-creator' ); ?>
 		</p>
 	</div>
 	<?php
@@ -130,7 +130,7 @@ add_action( 'admin_init', 'flux_ai_media_alt_creator_activation_redirect' );
 // Translations are automatically loaded by WordPress.org for hosted plugins (WordPress 4.6+).
 
 /**
- * Initialize the Flux AI Media Alt Creator plugin.
+ * Initialize the Flux AI Alt Text & Accessibility Audit plugin.
  *
  * @since 1.0.0
  */
@@ -145,11 +145,11 @@ function flux_ai_media_alt_creator_init() {
 }
 
 /**
- * Check if Flux AI Media Alt Creator is activated on the network.
+ * Check if Flux AI Alt Text & Accessibility Audit is activated on the network.
  *
  * @since 1.0.0
  *
- * @return bool True if Flux AI Media Alt Creator is activated on the network.
+ * @return bool True if Flux AI Alt Text & Accessibility Audit is activated on the network.
  */
 function flux_ai_media_alt_creator_is_active_for_network() {
 	static $is;

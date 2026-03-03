@@ -1,6 +1,6 @@
 <?php
 /**
- * Admin controller for Flux AI Media Alt Creator plugin.
+ * Admin controller for Flux AI Alt Text & Accessibility Audit plugin.
  *
  * @package FluxAIMediaAltCreator
  * @since 1.0.0
@@ -83,7 +83,7 @@ class AdminController {
 			?>
 			<div class="notice notice-error">
 				<p>
-					<strong><?php esc_html_e( 'Flux AI Media Alt Creator:', 'flux-ai-media-alt-creator' ); ?></strong>
+					<strong><?php esc_html_e( 'Flux AI Alt Text & Accessibility Audit:', 'flux-ai-media-alt-creator' ); ?></strong>
 					<?php
 					printf(
 						/* translators: %s: Settings page URL */

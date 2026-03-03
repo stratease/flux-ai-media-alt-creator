@@ -78,7 +78,7 @@ const Navigation = () => {
       <Tabs
         value={getTabValue(location.pathname)}
         onChange={handleTabChange}
-        aria-label={__('Flux AI Media Alt Creator navigation tabs', 'flux-ai-media-alt-creator')}
+        aria-label={__('Flux AI Alt Text & Accessibility Audit navigation tabs', 'flux-ai-media-alt-creator')}
         textColor="primary"
         indicatorColor="primary"
       >
@@ -265,7 +265,7 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <FluxAppProvider>
           <Router>
-            <PageLayout title={__('Flux AI Media Alt Creator', 'flux-ai-media-alt-creator')} maxWidth="xl">
+            <PageLayout title={__('Flux AI Alt Text & Accessibility Audit', 'flux-ai-media-alt-creator')} maxWidth="xl">
               <Navigation />
               <Routes>
                 <Route path="/overview" element={<OverviewPage />} />

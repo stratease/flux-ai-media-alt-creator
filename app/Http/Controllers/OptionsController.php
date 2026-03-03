@@ -1,6 +1,6 @@
 <?php
 /**
- * Options REST API controller for Flux AI Media Alt Creator plugin.
+ * Options REST API controller for Flux AI Alt Text & Accessibility Audit plugin.
  *
  * @package FluxAIMediaAltCreator
  * @since 1.0.0

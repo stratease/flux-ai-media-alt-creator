@@ -1,3 +1,6 @@
+= 3.1.0 =
+* Reposition and renamed focus of plugin to WCAG Compliance and WooCommerce integration. Now named: Flux AI Alt Text & Accessibility Audit.
+
 = 3.0.0 =
 * Major feature update, adding a SEO / Accessibility compliance dashboard.
 

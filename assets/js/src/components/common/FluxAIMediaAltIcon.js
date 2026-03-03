@@ -1,7 +1,7 @@
 import React from 'react';
 
 /**
- * Flux AI Media Alt Creator brand icon component
+ * Flux AI Alt Text & Accessibility Audit brand icon component
  * 
  * @package FluxAIMediaAltCreator
  * @since 1.0.0
@@ -17,7 +17,7 @@ const FluxAIMediaAltIcon = ({ size = 32, ...props }) => {
       role="img"
       {...props}
     >
-      <title id="title">Flux AI Media Alt Creator Logo</title>
+      <title id="title">Flux AI Alt Text & Accessibility Audit Logo</title>
       <desc id="desc">Symmetrical triangle logo with energy filaments and electricity effects representing power and flow.</desc>
 
       <defs>
