@@ -3,7 +3,7 @@
  * Plugin Name: Flux AI Alt Text & Accessibility Audit by Flux Plugins
  * Plugin URI: https://fluxplugins.com/ai-media-alt-creator
  * Description: Generate AI-powered alt text using OpenAI, Google Gemini, or Anthropic Claude vision APIs.
- * Version: 3.1.0
+ * Version: 3.1.2
  * Author: Flux Plugins
  * Author URI: https://fluxplugins.com
  * License: GPL-2.0+
@@ -29,12 +29,76 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants.
-define( 'FLUX_AI_MEDIA_ALT_CREATOR_VERSION', '3.1.0' );
+define( 'FLUX_AI_MEDIA_ALT_CREATOR_VERSION', '3.1.2' );
 define( 'FLUX_AI_MEDIA_ALT_CREATOR_PLUGIN_FILE', __FILE__ );
 define( 'FLUX_AI_MEDIA_ALT_CREATOR_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'FLUX_AI_MEDIA_ALT_CREATOR_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'FLUX_AI_MEDIA_ALT_CREATOR_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 define( 'FLUX_AI_MEDIA_ALT_CREATOR_PLUGIN_SLUG', 'flux-ai-media-alt-creator' );
+
+/**
+ * Plugin uninstall handler.
+ *
+ * Uses only WordPress core APIs so it runs safely when WP_UNINSTALL_PLUGIN is set
+ * (no vendor/autoload) or when invoked via register_uninstall_hook. Guards $wpdb
+ * and wp_clear_scheduled_hook so teardown never fatals.
+ *
+ * @since 1.0.0
+ */
+function flux_ai_media_alt_creator_uninstall() {
+	global $wpdb;
+
+	// Guard: require WordPress database (avoid fatals in minimal bootstrap).
+	if ( ! isset( $wpdb ) || ! ( $wpdb instanceof \wpdb ) ) {
+		return;
+	}
+
+	// Remove plugin options.
+	$options = [
+		'flux_ai_alt_creator_settings',
+		'flux_ai_alt_creator_usage_current_month',
+		'flux_ai_media_alt_creator_version',
+		'flux_ai_media_alt_creator_activation_redirect',
+		'flux_ai_alt_creator_compliance_last_scan',
+		'flux_ai_alt_creator_compliance_scan_offset',
+		'flux_ai_alt_creator_compliance_alt_counts',
+	];
+
+	foreach ( $options as $option ) {
+		delete_option( $option );
+		delete_site_option( $option );
+	}
+
+	// Remove post meta for all attachments.
+	$prepared = $wpdb->prepare(
+		"DELETE FROM {$wpdb->postmeta} WHERE meta_key LIKE %s",
+		$wpdb->esc_like( '_flux_ai_alt_creator_' ) . '%'
+	);
+	if ( $prepared !== false ) {
+		$wpdb->query( $prepared );
+	}
+
+	// Clear any scheduled WP Cron jobs (only if in scope).
+	if ( function_exists( 'wp_clear_scheduled_hook' ) ) {
+		wp_clear_scheduled_hook( 'flux_ai_media_alt_creator_cleanup' );
+	}
+
+	// Remove any transients.
+	$prepared = $wpdb->prepare(
+		"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
+		$wpdb->esc_like( '_transient_flux_ai_media_alt_creator_' ) . '%',
+		$wpdb->esc_like( '_transient_timeout_flux_ai_media_alt_creator_' ) . '%'
+	);
+	if ( $prepared !== false ) {
+		$wpdb->query( $prepared );
+	}
+}
+
+// When WordPress includes this file for uninstall (e.g. uninstall.php flow), run and exit without loading vendor.
+if ( defined( 'WP_UNINSTALL_PLUGIN' ) ) {
+	flux_ai_media_alt_creator_uninstall();
+	exit;
+}
 
 // Check PHP version compatibility.
 // @since 1.0.0
@@ -252,55 +316,8 @@ function flux_ai_media_alt_creator_deactivate() {
 	// Clear any scheduled WP Cron events.
 	wp_clear_scheduled_hook( 'flux_ai_media_alt_creator_cleanup' );
 
-	// Cancel all Free plugin action scheduler actions.
+	// Cancel all Free plugin action scheduler actions (centralized in AsyncJobService).
 	$async_job_service = AsyncJobService::get_instance();
 	$async_job_service->cancel_all_actions();
-}
-
-/**
- * Plugin uninstall handler.
- *
- * @since 1.0.0
- */
-function flux_ai_media_alt_creator_uninstall() {
-	defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
-
-	global $wpdb;
-
-	// Remove plugin options.
-	$options = [
-		'flux_ai_alt_creator_settings',
-		'flux_ai_alt_creator_usage_current_month',
-		'flux_ai_media_alt_creator_version',
-		'flux_ai_media_alt_creator_activation_redirect',
-		'flux_ai_alt_creator_compliance_last_scan',
-		'flux_ai_alt_creator_compliance_scan_offset',
-		'flux_ai_alt_creator_compliance_alt_counts',
-	];
-
-	foreach ( $options as $option ) {
-		delete_option( $option );
-		delete_site_option( $option );
-	}
-
-	// Remove post meta for all attachments.
-	$wpdb->query(
-		$wpdb->prepare(
-			"DELETE FROM {$wpdb->postmeta} WHERE meta_key LIKE %s",
-			$wpdb->esc_like( '_flux_ai_alt_creator_' ) . '%'
-		)
-	);
-
-	// Clear any scheduled WP Cron jobs.
-	wp_clear_scheduled_hook( 'flux_ai_media_alt_creator_cleanup' );
-
-	// Remove any transients.
-	$wpdb->query(
-		$wpdb->prepare(
-			"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
-			$wpdb->esc_like( '_transient_flux_ai_media_alt_creator_' ) . '%',
-			$wpdb->esc_like( '_transient_timeout_flux_ai_media_alt_creator_' ) . '%'
-		)
-	);
 }
 

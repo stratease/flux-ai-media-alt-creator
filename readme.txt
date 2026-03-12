@@ -4,7 +4,7 @@ Tags: alt text, accessibility, image seo, ai, wcag, media library, woocommerce
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 8.0
-Stable tag: 3.1.0
+Stable tag: 3.1.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -119,22 +119,14 @@ The plugin supports all standard WordPress image formats, including JPEG, PNG, G
 
 == Changelog ==
 
+= 3.1.2 =
+* Patched improper exit on Uninstall operation.
+
+= 3.1.1 =
+* Fixing fatal caused by improper dependency resolution during build.
+
 = 3.1.0 =
 * Reposition and renamed focus of plugin to WCAG Compliance and WooCommerce integration. Now named: Flux AI Alt Text & Accessibility Audit.
-
-= 3.0.0 =
-* **Compliance Dashboard (major update):** New dedicated compliance experience to help you meet accessibility and SEO goals.
-* **Overview & Compliance pages:** Central dashboard with usage stats, one-click compliance scan, and a dedicated Compliance tab for managing alt text status across your media library.
-* **Compliance scan:** Run a full scan to see which images have alt text, which are missing it, and which are marked decorative. Filter by status and fix in bulk.
-* **Set category / reclassify:** Mark images as decorative or reclassify after editing alt text. Single set-category API supports both explicit categories and reclassification.
-* **Media scanner "All" filter:** View all image attachments with accurate counts; filter by compliance status (e.g. missing, has alt, decorative).
-* **Improved Media UI:** Clearer column labels (Alt Text, Proposed Alt Text, Status), icon actions with tooltips for Generate, Apply, Mark Decorative, and Unmark Decorative.
-* **Bulk actions:** Generate AI alt text, apply recommendations, and manage decorative status from the Compliance and Media views with reliable bulk handling.
-* **Immediate reclassification:** When you apply alt text or change category, compliance state updates right away so the dashboard stays in sync.
-
-= 2.0.0 =
-* Fixed edge case where alt text preview would not update after being edited.
-* Added integration for Gemini and Claude API's.
 
 
 == Upgrade Notice ==
