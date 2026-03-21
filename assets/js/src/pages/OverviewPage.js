@@ -16,7 +16,6 @@ import { PlayArrow, InfoOutlined, Dashboard, CheckCircle } from '@mui/icons-mate
 import { __ } from '@wordpress/i18n';
 import { useNavigate } from 'react-router-dom';
 import { useUsage } from '../hooks/useUsage';
-import { useMedia } from '../hooks/useMedia';
 import { useComplianceSummary, useComplianceScan } from '../hooks/useCompliance';
 import { UpgradeToProCard } from '../components';
 
@@ -27,7 +26,6 @@ const OverviewPage = () => {
   const navigate = useNavigate();
   const [showScanCompleteSnackbar, setShowScanCompleteSnackbar] = React.useState(false);
   const { data: usage, isLoading: usageLoading } = useUsage();
-  const { data: mediaData, isLoading: mediaLoading } = useMedia(1, 1);
   const { data: complianceSummary, isLoading: complianceLoading } = useComplianceSummary();
   const complianceScanMutation = useComplianceScan({
     onScanComplete: () => setShowScanCompleteSnackbar(true),
@@ -57,6 +55,8 @@ const OverviewPage = () => {
   const highRiskCount = complianceSummary?.high_risk_count ?? 0;
   const lastScanTimestamp = complianceSummary?.last_scan_timestamp ?? null;
   const hasScanned = lastScanTimestamp != null && String(lastScanTimestamp) !== '';
+  const byCategory = complianceSummary && typeof complianceSummary.by_category === 'object' ? complianceSummary.by_category : {};
+  const missingCount = hasScanned ? (byCategory.missing ?? 0) : null;
 
   const complianceMessage = !hasScanned
     ? __('Scan your media library to assess accessibility compliance and SEO coverage.', 'flux-ai-media-alt-creator')
@@ -110,7 +110,7 @@ const OverviewPage = () => {
                     {complianceMessage}
                   </Typography>
                 )}
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'stretch', sm: 'center' }}>
                   <Button
                     variant="contained"
                     color="primary"
@@ -133,6 +133,35 @@ const OverviewPage = () => {
                   >
                     {__('View Compliance Dashboard', 'flux-ai-media-alt-creator')}
                   </Button>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<PlayArrow />}
+                    onClick={() => navigate('/media?alt_category=missing')}
+                  >
+                    {__('Start Processing', 'flux-ai-media-alt-creator')}
+                  </Button>
+                  <Box sx={{ flex: 1 }} />
+                  <Button
+                    variant="text"
+                    onClick={() => navigate('/media?alt_category=missing')}
+                    sx={{ justifyContent: { xs: 'flex-start', sm: 'flex-end' } }}
+                  >
+                    <Stack direction="row" spacing={1} alignItems="baseline">
+                      <Typography variant="body2" color="text.secondary">
+                        {__('Missing alt text', 'flux-ai-media-alt-creator')}
+                      </Typography>
+                      <Typography variant="h6" color="primary">
+                        {complianceLoading ? (
+                          <Skeleton variant="text" width={24} />
+                        ) : missingCount === null ? (
+                          '—'
+                        ) : (
+                          formatNumber(missingCount)
+                        )}
+                      </Typography>
+                    </Stack>
+                  </Button>
                 </Stack>
               </>
             )}
@@ -150,47 +179,6 @@ const OverviewPage = () => {
               </Tooltip>
             )}
           </Box>
-        </Grid>
-
-        {/* Media without alt - out of card, with Start processing button */}
-        <Grid item xs={12}>
-          <Stack
-            direction={{ xs: 'column', sm: 'row' }}
-            spacing={2}
-            alignItems={{ xs: 'stretch', sm: 'center' }}
-            justifyContent="space-between"
-            sx={{
-              p: 2,
-              borderRadius: 1,
-              bgcolor: 'action.hover',
-              border: '1px solid',
-              borderColor: 'divider',
-            }}
-          >
-            <Box>
-              {mediaLoading ? (
-                <Skeleton variant="text" width={120} height={48} />
-              ) : (
-                <>
-                  <Typography variant="h4" color="primary" component="span">
-                    {formatNumber(mediaData?.total || 0)}
-                  </Typography>
-                  <Typography variant="body1" color="text.secondary" component="span" sx={{ ml: 1 }}>
-                    {__('Media Files Without Alt Text', 'flux-ai-media-alt-creator')}
-                  </Typography>
-                </>
-              )}
-            </Box>
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<PlayArrow />}
-              onClick={() => navigate('/media')}
-              sx={{ flexShrink: 0 }}
-            >
-              {__('Start Processing', 'flux-ai-media-alt-creator')}
-            </Button>
-          </Stack>
         </Grid>
 
         {isProActive && (

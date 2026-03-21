@@ -25,28 +25,33 @@ loadEnvFile(path.resolve(process.cwd(), '.env'));
 const BASE_URL = process.env.BASE_URL || 'http://localhost';
 const USERNAME = process.env.WP_LOCAL_USERNAME;
 const PASSWORD = process.env.WP_LOCAL_PASSWORD;
-const SHOT_DIR = process.env.E2E_SHOT_DIR || '/home/edaniels/repos/logs/screenshots/flux-ai-alt-phase1';
+const SHOT_DIR = process.env.E2E_SHOT_DIR;
 
-function shotPath(name: string) {
-  fs.mkdirSync(SHOT_DIR, { recursive: true });
-  return path.join(SHOT_DIR, name);
+function shotPath(testInfo: any, name: string) {
+  if (SHOT_DIR) {
+    fs.mkdirSync(SHOT_DIR, { recursive: true });
+    return path.join(SHOT_DIR, name);
+  }
+  const p = testInfo.outputPath('screenshots', name);
+  fs.mkdirSync(path.dirname(p), { recursive: true });
+  return p;
 }
 
 test.describe('flux-ai-alt phase-1 @smoke', () => {
-  test('wp admin login and plugin page reachable', async ({ page }) => {
+  test('wp admin login and plugin page reachable', async ({ page }, testInfo) => {
     if (!USERNAME || !PASSWORD) {
       throw new Error('Missing WP_LOCAL_USERNAME / WP_LOCAL_PASSWORD env vars. Export them before running smoke tests.');
     }
 
     await page.goto(`${BASE_URL}/wp-login.php`);
-    await page.screenshot({ path: shotPath('01-login-page.png'), fullPage: true });
+    await page.screenshot({ path: shotPath(testInfo, '01-login-page.png'), fullPage: true });
 
     await page.locator('#user_login').fill(USERNAME!);
     await page.locator('#user_pass').fill(PASSWORD!);
     await page.locator('#wp-submit').click();
 
     await expect(page).toHaveURL(/wp-admin/);
-    await page.screenshot({ path: shotPath('02-wp-admin-dashboard.png'), fullPage: true });
+    await page.screenshot({ path: shotPath(testInfo, '02-wp-admin-dashboard.png'), fullPage: true });
 
     await page.goto(`${BASE_URL}/wp-admin/admin.php?page=flux-ai-media-alt-creator`);
     await expect(page).toHaveURL(/flux-ai-media-alt-creator/);
@@ -60,6 +65,6 @@ test.describe('flux-ai-alt phase-1 @smoke', () => {
     await expect(page.getByRole('tab', { name: 'Compliance' })).toBeVisible();
     await expect(page.getByRole('tab', { name: 'Settings' })).toBeVisible();
 
-    await page.screenshot({ path: shotPath('03-plugin-page.png'), fullPage: true });
+    await page.screenshot({ path: shotPath(testInfo, '03-plugin-page.png'), fullPage: true });
   });
 });

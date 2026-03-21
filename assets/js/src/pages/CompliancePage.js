@@ -138,20 +138,29 @@ const CompliancePage = () => {
                   : __('Never scanned', 'flux-ai-media-alt-creator')}
               </Typography>
             </Stack>
-            <Button
-              variant="contained"
-              startIcon={
-                complianceScanMutation.isPending ? (
-                  <CircularProgress size={20} color="inherit" aria-hidden />
-                ) : (
-                  <PlayArrow aria-hidden />
-                )
-              }
-              onClick={() => complianceScanMutation.mutate()}
-              disabled={complianceScanMutation.isPending}
-            >
-              {__('Run Compliance Scan', 'flux-ai-media-alt-creator')}
-            </Button>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'stretch', sm: 'center' }}>
+              <Button
+                variant="contained"
+                startIcon={
+                  complianceScanMutation.isPending ? (
+                    <CircularProgress size={20} color="inherit" aria-hidden />
+                  ) : (
+                    <PlayArrow aria-hidden />
+                  )
+                }
+                onClick={() => complianceScanMutation.mutate()}
+                disabled={complianceScanMutation.isPending}
+              >
+                {__('Run Compliance Scan', 'flux-ai-media-alt-creator')}
+              </Button>
+              <Button
+                variant="contained"
+                startIcon={<PlayArrow aria-hidden />}
+                onClick={() => goToMediaWithFilter('missing')}
+              >
+                {__('Start Processing', 'flux-ai-media-alt-creator')}
+              </Button>
+            </Stack>
           </Stack>
         </Paper>
       )}

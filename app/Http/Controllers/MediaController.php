@@ -106,7 +106,7 @@ class MediaController extends BaseController {
 	}
 
 	/**
-	 * Get paginated list of media files without alt text.
+	 * Get paginated list of media files.
 	 *
 	 * @since 1.0.0
 	 * @param WP_REST_Request $request Request object.
@@ -139,7 +139,7 @@ class MediaController extends BaseController {
 				$filters = [];
 			}
 
-			$result = $this->media_scanner->scan_media_without_alt( $page, $per_page, $search, $filters );
+			$result = $this->media_scanner->scan_media( $page, $per_page, $search, $filters );
 
 			return $this->create_success_response( $result, 'Media files retrieved successfully' );
 		} catch ( \Exception $e ) {

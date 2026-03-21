@@ -289,20 +289,29 @@ class ComplianceScanService {
 	 * @return string Context string (e.g. post title or product name).
 	 */
 	private function get_parent_context( $attachment_id ) {
-		$post = get_post( $attachment_id );
-		if ( ! $post || ! $post->post_parent ) {
-			return '';
+		$post   = get_post( $attachment_id );
+		$parent = null;
+
+		if ( $post && ! empty( $post->post_parent ) ) {
+			$parent = get_post( $post->post_parent );
 		}
-		$parent = get_post( $post->post_parent );
+
+		if ( WooCommerceHelper::is_active() ) {
+			$product_ids = WooCommerceHelper::get_products_for_attachment( $attachment_id );
+			if ( ! empty( $product_ids ) ) {
+				$primary_product_id = (int) $product_ids[0];
+				$product_parent     = get_post( $primary_product_id );
+				if ( $product_parent && in_array( $product_parent->post_type, [ 'product', 'product_variation' ], true ) ) {
+					return trim( (string) $product_parent->post_title );
+				}
+			}
+		}
+
 		if ( ! $parent ) {
 			return '';
 		}
-		$context = $parent->post_title;
-		if ( WooCommerceHelper::is_active() && $parent->post_type === 'product' ) {
-			$context = $parent->post_title;
-			// Optionally add 1–2 variation attributes; keep simple and use product title only for now.
-		}
-		return trim( $context );
+
+		return trim( (string) $parent->post_title );
 	}
 
 	/**

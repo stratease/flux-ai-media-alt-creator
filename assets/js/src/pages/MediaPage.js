@@ -39,6 +39,251 @@ import { useMedia, useMediaTypeGroups } from '../hooks/useMedia';
 import { useGenerateAltText, useApplyAltText, useBatchGenerateAltText } from '../hooks/useAltText';
 import { useSetAltCategory } from '../hooks/useCompliance';
 
+const getMediaFeaturesConfig = () => {
+  const cfg = window?.fluxAIMediaAltCreatorAdmin?.mediaFeatures;
+  if (!cfg || typeof cfg !== 'object') {
+    return { contractVersion: 0, features: {}, table: { columns: [] } };
+  }
+  const contractVersion = Number(cfg.contractVersion || 0);
+  const features = (cfg.features && typeof cfg.features === 'object') ? cfg.features : {};
+  const tableRaw = cfg.table && typeof cfg.table === 'object' ? cfg.table : {};
+  const columns = Array.isArray(tableRaw.columns) ? tableRaw.columns : [];
+  return { contractVersion, features, table: { columns } };
+};
+
+const getMediaFeaturesFingerprint = () => {
+  const { features, contractVersion, table } = getMediaFeaturesConfig();
+  const enabled = {};
+  const actionsEnabled = {};
+
+  Object.keys(features).forEach((id) => {
+    const def = features[id];
+    enabled[id] = Boolean(def && typeof def === 'object' && def.enabled === true);
+
+    if (def && typeof def === 'object' && def.actions && typeof def.actions === 'object') {
+      Object.keys(def.actions).forEach((actionKey) => {
+        const a = def.actions[actionKey];
+        if (a && typeof a === 'object') {
+          // Mirror isFeatureActionEnabled() logic: action enabled unless explicitly set false.
+          actionsEnabled[`${id}:${actionKey}`] = a.enabled !== false;
+        }
+      });
+    }
+  });
+  return JSON.stringify({
+    contractVersion,
+    enabled,
+    actionsEnabled,
+    columns: (table.columns || []).map((c) => (
+      c && typeof c === 'object'
+        ? { id: c.id, e: c.enabled, p: c.priority, f: c.featureId }
+        : null
+    )),
+  });
+};
+
+const getEnabledMediaFeatureIds = () => {
+  const { features } = getMediaFeaturesConfig();
+  return Object.keys(features).filter((id) => {
+    const def = features[id];
+    return def && typeof def === 'object' && def.enabled === true;
+  });
+};
+
+/**
+ * Default column descriptors when `mediaFeatures.table.columns` is missing (older payloads).
+ *
+ * @return {object[]}
+ */
+const getLegacyDefaultTableColumns = () => [
+  { id: 'thumbnail', enabled: true, priority: 10, label: __('Thumbnail', 'flux-ai-media-alt-creator'), featureId: null },
+  { id: 'filename', enabled: true, priority: 20, label: __('Filename', 'flux-ai-media-alt-creator'), featureId: null },
+  { id: 'current_alt', enabled: true, priority: 30, label: __('Alt Text', 'flux-ai-media-alt-creator'), featureId: 'alt_text' },
+  { id: 'recommended_alt', enabled: true, priority: 40, label: __('Suggested Alt Text', 'flux-ai-media-alt-creator'), featureId: 'alt_text' },
+  { id: 'alt_category', enabled: true, priority: 50, label: __('Category', 'flux-ai-media-alt-creator'), featureId: 'alt_category' },
+  { id: 'scan_status', enabled: true, priority: 60, label: __('Status', 'flux-ai-media-alt-creator'), featureId: 'alt_text' },
+];
+
+const resolveTableColumns = (enabledFeatureIds) => {
+  const { table } = getMediaFeaturesConfig();
+  let cols = Array.isArray(table.columns) ? [...table.columns] : [];
+  if (cols.length === 0) {
+    cols = getLegacyDefaultTableColumns();
+  }
+  return cols
+    .filter((col) => col && typeof col === 'object' && col.id && col.enabled !== false)
+    .filter((col) => {
+      const fid = col.featureId;
+      if (fid == null || fid === '') return true;
+      return enabledFeatureIds.includes(fid);
+    })
+    .sort((a, b) => (Number(a.priority) || 0) - (Number(b.priority) || 0));
+};
+
+/**
+ * @param {string} featureId
+ * @param {string} actionKey
+ * @param {'bulk_actions'|'media_table_row'} location
+ */
+const isFeatureActionEnabled = (featureId, actionKey, location) => {
+  const { features } = getMediaFeaturesConfig();
+  const f = features[featureId];
+  if (!f || typeof f !== 'object' || f.enabled !== true) return false;
+  const locs = f.locations;
+  if (!Array.isArray(locs) || !locs.includes(location)) return false;
+  const actions = f.actions && typeof f.actions === 'object' ? f.actions : {};
+  const a = actions[actionKey];
+  return Boolean(a && typeof a === 'object' && a.enabled !== false);
+};
+
+const getExtensionTableColumn = (columnId) => {
+  const cols = window?.FLUX_EXTENSIONS?.get?.('flux.media.table.columns', {}) || [];
+  if (!Array.isArray(cols)) return undefined;
+  return cols.find((c) => c && c.id === columnId);
+};
+
+const getColumnHeadSx = (columnId) => {
+  switch (columnId) {
+    case 'filename':
+      return { width: '18%', maxWidth: 200 };
+    default:
+      return {};
+  }
+};
+
+/**
+ * Renders data cells for one row from resolved `table.columns` config.
+ */
+const MediaDataCells = ({
+  resolvedColumns = [],
+  media = {},
+  mediaId,
+  altText,
+  isGenerating,
+  onAltTextChange,
+  getStatusLabel,
+  getStatusColor,
+  getCategoryLabel,
+}) => {
+  const handleAltTextChange = (event) => {
+    if (typeof onAltTextChange === 'function') onAltTextChange(mediaId, event.target.value);
+  };
+
+  const currentAlt = (media && media.current_alt != null) ? String(media.current_alt) : '';
+  const categoryLabel = (media && media.alt_category && typeof getCategoryLabel === 'function')
+    ? getCategoryLabel(media.alt_category)
+    : '—';
+  const statusLabel = typeof getStatusLabel === 'function' ? getStatusLabel(media.scan_status) : (media.scan_status || '—');
+  const statusColor = typeof getStatusColor === 'function' ? getStatusColor(media.scan_status) : 'default';
+
+  return resolvedColumns.map((column) => {
+    const { id: colId } = column;
+
+    switch (colId) {
+      case 'thumbnail':
+        return (
+          <TableCell key={colId}>
+            {media.thumbnail_url ? (
+              <Link href={media.edit_url || '#'} target="_blank" rel="noopener noreferrer">
+                <img src={media.thumbnail_url} alt="" style={{ width: 50, height: 50, objectFit: 'cover' }} />
+              </Link>
+            ) : (
+              <Box sx={{ width: 50, height: 50, bgcolor: 'grey.200' }} />
+            )}
+          </TableCell>
+        );
+      case 'filename':
+        return (
+          <TableCell key={colId} sx={{ width: '18%', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={media.filename ?? ''}>
+            <Typography variant="body2" noWrap component="span">{media.filename ?? '—'}</Typography>
+          </TableCell>
+        );
+      case 'current_alt':
+        return (
+          <TableCell key={colId} sx={{ maxWidth: 180 }} title={currentAlt}>
+            <Typography variant="body2" noWrap>{currentAlt || '—'}</Typography>
+          </TableCell>
+        );
+      case 'recommended_alt':
+        return (
+          <TableCell key={colId} sx={{ minWidth: 180 }}>
+            <TextField
+              fullWidth
+              size="small"
+              value={altText}
+              onChange={handleAltTextChange}
+              placeholder={__('No recommendation yet', 'flux-ai-media-alt-creator')}
+              variant="outlined"
+              disabled={isGenerating}
+              InputProps={{
+                endAdornment: isGenerating ? (
+                  <InputAdornment position="end">
+                    <CircularProgress size={20} />
+                  </InputAdornment>
+                ) : null,
+              }}
+            />
+          </TableCell>
+        );
+      case 'alt_category':
+        return (
+          <TableCell key={colId}>
+            {media.alt_category ? (
+              <Chip label={categoryLabel} size="small" variant="outlined" />
+            ) : (
+              '—'
+            )}
+          </TableCell>
+        );
+      case 'scan_status':
+        return (
+          <TableCell key={colId}>
+            <Chip label={statusLabel} color={statusColor} size="small" />
+          </TableCell>
+        );
+      case 'pro-filename-column':
+        return (
+          <TableCell
+            key={colId}
+            sx={{
+              maxWidth: 220,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+            title={media.suggested_filename ?? ''}
+          >
+            <Typography
+              variant="body2"
+              component="span"
+              sx={{
+                display: 'block',
+                whiteSpace: 'normal',
+                overflowWrap: 'anywhere',
+                wordBreak: 'break-word',
+              }}
+            >
+              {media.suggested_filename || '—'}
+            </Typography>
+          </TableCell>
+        );
+      default:
+        // Allow non-core columns (future features) to provide rendering via JS extensions.
+        // Core columns remain backend-contract driven.
+        {
+          const ext = getExtensionTableColumn(colId);
+          if (ext && typeof ext.renderCell === 'function') {
+            return (
+              <TableCell key={colId}>
+                {ext.renderCell({ media, mediaId })}
+              </TableCell>
+            );
+          }
+        }
+        return <TableCell key={colId}>—</TableCell>;
+    }
+  });
+};
+
 /**
  * Media page component with paginated list and bulk actions
  * 
@@ -110,11 +355,74 @@ const MediaPage = () => {
     setSelectedMedia(new Set());
   }, [page]);
 
-  const { data, isLoading, error } = useMedia(page, perPage, search, filters);
+  const { data, isLoading, error, refetch } = useMedia(page, perPage, search, filters);
   const generateMutation = useGenerateAltText();
   const applyMutation = useApplyAltText();
   const batchGenerateMutation = useBatchGenerateAltText();
   const setAltCategoryMutation = useSetAltCategory();
+
+  const mediaFeaturesFingerprint = getMediaFeaturesFingerprint();
+
+  const enabledFeatureIds = useMemo(
+    () => getEnabledMediaFeatureIds(),
+    [mediaFeaturesFingerprint],
+  );
+
+  const resolvedColumns = useMemo(
+    () => resolveTableColumns(enabledFeatureIds),
+    [enabledFeatureIds, mediaFeaturesFingerprint],
+  );
+
+  const bulkAction = useMemo(
+    () => ({
+      generate: isFeatureActionEnabled('alt_text', 'generate', 'bulk_actions'),
+      apply: isFeatureActionEnabled('alt_text', 'apply', 'bulk_actions'),
+      markDecorative: isFeatureActionEnabled('alt_category', 'mark_decorative', 'bulk_actions'),
+      unmarkDecorative: isFeatureActionEnabled('alt_category', 'unmark_decorative', 'bulk_actions'),
+    }),
+    [mediaFeaturesFingerprint],
+  );
+
+  const rowActionFlags = useMemo(
+    () => ({
+      generate: isFeatureActionEnabled('alt_text', 'generate', 'media_table_row'),
+      apply: isFeatureActionEnabled('alt_text', 'apply', 'media_table_row'),
+      markDecorative: isFeatureActionEnabled('alt_category', 'mark_decorative', 'media_table_row'),
+      unmarkDecorative: isFeatureActionEnabled('alt_category', 'unmark_decorative', 'media_table_row'),
+    }),
+    [mediaFeaturesFingerprint],
+  );
+
+  const mediaRowActions = useMemo(() => {
+    const actions = window?.FLUX_EXTENSIONS?.get?.('flux.media.row.actions', {}) || [];
+    if (!Array.isArray(actions) || actions.length === 0) return [];
+    return actions.filter((action) => {
+      if (!action || !enabledFeatureIds.includes(action.featureId)) return false;
+      if (action.featureId === 'file_name') return false; // Render file_name UI from the backend contract.
+      return true;
+    });
+  }, [enabledFeatureIds, mediaFeaturesFingerprint]);
+
+  const showActionsColumn = useMemo(() => {
+    if (mediaRowActions.length > 0) return true;
+    return (
+      rowActionFlags.generate ||
+      rowActionFlags.apply ||
+      rowActionFlags.markDecorative ||
+      rowActionFlags.unmarkDecorative
+    );
+  }, [mediaRowActions.length, rowActionFlags]);
+
+  // Allow extension actions to request media list refresh after side effects.
+  useEffect(() => {
+    const handleRefreshRequest = () => {
+      if (typeof refetch === 'function') {
+        refetch();
+      }
+    };
+    window.addEventListener('flux-media-refresh-requested', handleRefreshRequest);
+    return () => window.removeEventListener('flux-media-refresh-requested', handleRefreshRequest);
+  }, [refetch]);
 
   // Memoize current page media IDs and create a Set for O(1) lookups
   const currentPageMediaIds = useMemo(() => {
@@ -371,6 +679,8 @@ const MediaPage = () => {
   const hasMultipleMediaTypes = !loadingGroups && mediaTypeGroups && mediaTypeGroups.length > 1;
   const isSingleMediaType = !loadingGroups && mediaTypeGroups && mediaTypeGroups.length === 1;
 
+  const skeletonColumnCount = 1 + resolvedColumns.length + (showActionsColumn ? 1 : 0);
+
   return (
     <Box>
       <Stack direction="row" spacing={2} sx={{ mb: 3, alignItems: 'center', justifyContent: 'space-between' }}>
@@ -429,51 +739,59 @@ const MediaPage = () => {
 
       {/* Action Buttons with Selection Indicator */}
       <Grid container spacing={2} sx={{ mb: 2 }} alignItems="center">
-        <Grid item xs="auto">
-          <Button
-            variant="contained"
-            onClick={() => handleGenerateAltText()}
-            disabled={selectedMedia.size === 0 || generateMutation.isPending}
-          >
-            {generateMutation.isPending ? <CircularProgress size={20} /> : __('Generate AI Alt Text', 'flux-ai-media-alt-creator')}
-          </Button>
-        </Grid>
-        <Grid item xs="auto">
-          <Button
-            variant="outlined"
-            onClick={handleApplyAltText}
-            disabled={selectedMedia.size === 0 || applyMutation.isPending}
-          >
-            {applyMutation.isPending ? <CircularProgress size={20} /> : __('Apply Alt Text', 'flux-ai-media-alt-creator')}
-          </Button>
-        </Grid>
-        <Grid item xs="auto">
-          <Tooltip title={__('Use only for purely decorative images. Decorative images should have empty alt text per WCAG guidance.', 'flux-ai-media-alt-creator')}>
-            <span>
-              <Button
-                variant="outlined"
-                color="secondary"
-                onClick={handleMarkDecorativeBulk}
-                disabled={selectedMedia.size === 0 || setAltCategoryMutation.isPending}
-              >
-                {__('Mark Decorative', 'flux-ai-media-alt-creator')}
-              </Button>
-            </span>
-          </Tooltip>
-        </Grid>
-        <Grid item xs="auto">
-          <Tooltip title={__('Re-evaluate and assign the category these images would have if they were not marked decorative (e.g. missing).', 'flux-ai-media-alt-creator')}>
-            <span>
-              <Button
-                variant="outlined"
-                onClick={handleUnmarkDecorativeBulk}
-                disabled={selectedDecorativeIds.length === 0 || setAltCategoryMutation.isPending}
-              >
-                {setAltCategoryMutation.isPending ? <CircularProgress size={20} /> : __('Unmark Decorative', 'flux-ai-media-alt-creator')}
-              </Button>
-            </span>
-          </Tooltip>
-        </Grid>
+        {bulkAction.generate && (
+          <Grid item xs="auto">
+            <Button
+              variant="contained"
+              onClick={() => handleGenerateAltText()}
+              disabled={selectedMedia.size === 0 || generateMutation.isPending}
+            >
+              {generateMutation.isPending ? <CircularProgress size={20} /> : __('Generate AI Alt Text', 'flux-ai-media-alt-creator')}
+            </Button>
+          </Grid>
+        )}
+        {bulkAction.apply && (
+          <Grid item xs="auto">
+            <Button
+              variant="outlined"
+              onClick={handleApplyAltText}
+              disabled={selectedMedia.size === 0 || applyMutation.isPending}
+            >
+              {applyMutation.isPending ? <CircularProgress size={20} /> : __('Apply Alt Text', 'flux-ai-media-alt-creator')}
+            </Button>
+          </Grid>
+        )}
+        {bulkAction.markDecorative && (
+          <Grid item xs="auto">
+            <Tooltip title={__('Use only for purely decorative images. Decorative images should have empty alt text per WCAG guidance.', 'flux-ai-media-alt-creator')}>
+              <span>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={handleMarkDecorativeBulk}
+                  disabled={selectedMedia.size === 0 || setAltCategoryMutation.isPending}
+                >
+                  {__('Mark Decorative', 'flux-ai-media-alt-creator')}
+                </Button>
+              </span>
+            </Tooltip>
+          </Grid>
+        )}
+        {bulkAction.unmarkDecorative && (
+          <Grid item xs="auto">
+            <Tooltip title={__('Re-evaluate and assign the category these images would have if they were not marked decorative (e.g. missing).', 'flux-ai-media-alt-creator')}>
+              <span>
+                <Button
+                  variant="outlined"
+                  onClick={handleUnmarkDecorativeBulk}
+                  disabled={selectedDecorativeIds.length === 0 || setAltCategoryMutation.isPending}
+                >
+                  {setAltCategoryMutation.isPending ? <CircularProgress size={20} /> : __('Unmark Decorative', 'flux-ai-media-alt-creator')}
+                </Button>
+              </span>
+            </Tooltip>
+          </Grid>
+        )}
         <Grid item xs>
           <Typography variant="body2" color="text.secondary">
             {selectedMedia.size} {__('of', 'flux-ai-media-alt-creator')} {data?.total || 0} {__('selected', 'flux-ai-media-alt-creator')}
@@ -500,30 +818,24 @@ const MediaPage = () => {
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell><Skeleton /></TableCell>
-              <TableCell><Skeleton /></TableCell>
-              <TableCell><Skeleton /></TableCell>
-              <TableCell><Skeleton /></TableCell>
-              <TableCell><Skeleton /></TableCell>
-              <TableCell><Skeleton /></TableCell>
+              {[...Array(skeletonColumnCount)].map((_, i) => (
+                <TableCell key={i}><Skeleton /></TableCell>
+              ))}
             </TableRow>
           </TableHead>
           <TableBody>
             {[...Array(5)].map((_, i) => (
               <TableRow key={i}>
-                <TableCell><Skeleton /></TableCell>
-                <TableCell><Skeleton /></TableCell>
-                <TableCell><Skeleton /></TableCell>
-                <TableCell><Skeleton /></TableCell>
-                <TableCell><Skeleton /></TableCell>
-                <TableCell><Skeleton /></TableCell>
+                {[...Array(skeletonColumnCount)].map((_, j) => (
+                  <TableCell key={j}><Skeleton /></TableCell>
+                ))}
               </TableRow>
             ))}
           </TableBody>
         </Table>
       ) : (
         <>
-          <Table size="small">
+          <Table size="small" sx={{ tableLayout: 'fixed', width: '100%' }}>
             <TableHead>
               <TableRow>
                 <TableCell padding="checkbox">
@@ -533,13 +845,14 @@ const MediaPage = () => {
                     onChange={handleSelectAll}
                   />
                 </TableCell>
-                <TableCell>{__('Thumbnail', 'flux-ai-media-alt-creator')}</TableCell>
-                <TableCell>{__('Filename', 'flux-ai-media-alt-creator')}</TableCell>
-                <TableCell>{__('Alt Text', 'flux-ai-media-alt-creator')}</TableCell>
-                <TableCell>{__('Proposed Alt Text', 'flux-ai-media-alt-creator')}</TableCell>
-                <TableCell>{__('Category', 'flux-ai-media-alt-creator')}</TableCell>
-                <TableCell>{__('Status', 'flux-ai-media-alt-creator')}</TableCell>
-                <TableCell align="center">{__('Actions', 'flux-ai-media-alt-creator')}</TableCell>
+                {resolvedColumns.map((col) => (
+                  <TableCell key={col.id} sx={getColumnHeadSx(col.id)}>
+                    {col.label || col.id}
+                  </TableCell>
+                ))}
+                {showActionsColumn ? (
+                  <TableCell align="center">{__('Actions', 'flux-ai-media-alt-creator')}</TableCell>
+                ) : null}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -576,6 +889,10 @@ const MediaPage = () => {
                     applyPending={applyMutation.isPending}
                     generatePending={generateMutation.isPending}
                     setCategoryPending={setAltCategoryMutation.isPending}
+                    resolvedColumns={resolvedColumns}
+                    mediaRowActions={mediaRowActions}
+                    rowActionFlags={rowActionFlags}
+                    showActionsColumn={showActionsColumn}
                   />
                 );
               })}
@@ -620,130 +937,117 @@ const MediaRow = React.memo(({
   applyPending,
   generatePending,
   setCategoryPending,
+  resolvedColumns = [],
+  mediaRowActions = [],
+  rowActionFlags = {},
+  showActionsColumn = true,
 }) => {
   const handleCheckboxChange = (event) => {
     event.stopPropagation();
     if (typeof onSelect === 'function') onSelect(mediaId);
   };
 
-  const handleAltTextChange = (event) => {
-    if (typeof onAltTextChange === 'function') onAltTextChange(mediaId, event.target.value);
-  };
-
-  const currentAlt = (media && media.current_alt != null) ? String(media.current_alt) : '';
-  const categoryLabel = (media && media.alt_category && typeof getCategoryLabel === 'function')
-    ? getCategoryLabel(media.alt_category)
-    : '—';
-  const statusLabel = typeof getStatusLabel === 'function' ? getStatusLabel(media.scan_status) : (media.scan_status || '—');
-  const statusColor = typeof getStatusColor === 'function' ? getStatusColor(media.scan_status) : 'default';
+  const {
+    generate: rowGenerate,
+    apply: rowApply,
+    markDecorative: rowMarkDecorative,
+    unmarkDecorative: rowUnmarkDecorative,
+  } = rowActionFlags;
 
   return (
     <TableRow>
       <TableCell padding="checkbox">
         <Checkbox checked={!!isSelected} onChange={handleCheckboxChange} />
       </TableCell>
-      <TableCell>
-        {media.thumbnail_url ? (
-          <Link href={media.edit_url || '#'} target="_blank" rel="noopener noreferrer">
-            <img src={media.thumbnail_url} alt="" style={{ width: 50, height: 50, objectFit: 'cover' }} />
-          </Link>
-        ) : (
-          <Box sx={{ width: 50, height: 50, bgcolor: 'grey.200' }} />
-        )}
-      </TableCell>
-      <TableCell>{media.filename ?? '—'}</TableCell>
-      <TableCell sx={{ maxWidth: 180 }} title={currentAlt}>
-        <Typography variant="body2" noWrap>{currentAlt || '—'}</Typography>
-      </TableCell>
-      <TableCell sx={{ minWidth: 180 }}>
-        <TextField
-          fullWidth
-          size="small"
-          value={altText}
-          onChange={handleAltTextChange}
-          placeholder={__('No recommendation yet', 'flux-ai-media-alt-creator')}
-          variant="outlined"
-          disabled={isGenerating}
-          InputProps={{
-            endAdornment: isGenerating ? (
-              <InputAdornment position="end">
-                <CircularProgress size={20} />
-              </InputAdornment>
-            ) : null,
-          }}
-        />
-      </TableCell>
-      <TableCell>
-        {media.alt_category ? (
-          <Chip label={categoryLabel} size="small" variant="outlined" />
-        ) : (
-          '—'
-        )}
-      </TableCell>
-      <TableCell>
-        <Chip
-          label={statusLabel}
-          color={statusColor}
-          size="small"
-        />
-      </TableCell>
-      <TableCell align="center" sx={{ width: 160 }}>
-        <Stack direction="row" spacing={0.5} justifyContent="center" flexWrap="wrap" useFlexGap>
-          <Tooltip title={__('Generate AI alt text', 'flux-ai-media-alt-creator')}>
-            <span>
-              <IconButton
-                size="small"
-                color="primary"
-                onClick={typeof onGenerate === 'function' ? onGenerate : undefined}
-                disabled={generatePending}
-                aria-label={__('Generate', 'flux-ai-media-alt-creator')}
-              >
-                <AutoAwesome fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
-          <Tooltip title={__('Apply proposed alt text', 'flux-ai-media-alt-creator')}>
-            <span>
-              <IconButton
-                size="small"
-                color="primary"
-                onClick={typeof onApply === 'function' ? onApply : undefined}
-                disabled={applyPending}
-                aria-label={__('Apply', 'flux-ai-media-alt-creator')}
-              >
-                <CheckCircle fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
-          {media.alt_category === 'decorative' ? (
-            <Tooltip title={__('Re-evaluate and assign category from current alt (e.g. missing)', 'flux-ai-media-alt-creator')}>
-              <span>
-                <IconButton
-                  size="small"
-                  onClick={typeof onUnmarkDecorative === 'function' ? () => onUnmarkDecorative([mediaId]) : undefined}
-                  disabled={setCategoryPending}
-                  aria-label={__('Unmark Decorative', 'flux-ai-media-alt-creator')}
-                >
-                  <Restore fontSize="small" />
-                </IconButton>
-              </span>
-            </Tooltip>
-          ) : (
-            <Tooltip title={onMarkDecorativeTooltip || ''}>
-              <span>
-                <IconButton
-                  size="small"
-                  onClick={typeof onMarkDecorative === 'function' ? () => onMarkDecorative([mediaId]) : undefined}
-                  disabled={setCategoryPending}
-                  aria-label={__('Mark Decorative', 'flux-ai-media-alt-creator')}
-                >
-                  <ImageOutlined fontSize="small" />
-                </IconButton>
-              </span>
-            </Tooltip>
-          )}
-        </Stack>
-      </TableCell>
+      <MediaDataCells
+        resolvedColumns={resolvedColumns}
+        media={media}
+        mediaId={mediaId}
+        altText={altText}
+        isGenerating={isGenerating}
+        onAltTextChange={onAltTextChange}
+        getStatusLabel={getStatusLabel}
+        getStatusColor={getStatusColor}
+        getCategoryLabel={getCategoryLabel}
+      />
+      {showActionsColumn ? (
+        <TableCell align="center" sx={{ width: 160 }}>
+          <Stack direction="row" spacing={0.5} justifyContent="center" flexWrap="wrap" useFlexGap>
+            {rowGenerate ? (
+              <Tooltip title={__('Generate AI alt text', 'flux-ai-media-alt-creator')}>
+                <span>
+                  <IconButton
+                    size="small"
+                    color="primary"
+                    onClick={typeof onGenerate === 'function' ? onGenerate : undefined}
+                    disabled={generatePending}
+                    aria-label={__('Generate', 'flux-ai-media-alt-creator')}
+                  >
+                    <AutoAwesome fontSize="small" />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            ) : null}
+            {rowApply ? (
+              <Tooltip title={__('Apply proposed alt text', 'flux-ai-media-alt-creator')}>
+                <span>
+                  <IconButton
+                    size="small"
+                    color="primary"
+                    onClick={typeof onApply === 'function' ? onApply : undefined}
+                    disabled={applyPending}
+                    aria-label={__('Apply', 'flux-ai-media-alt-creator')}
+                  >
+                    <CheckCircle fontSize="small" />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            ) : null}
+            {media.alt_category === 'decorative' ? (
+              rowUnmarkDecorative ? (
+                <Tooltip title={__('Re-evaluate and assign category from current alt (e.g. missing)', 'flux-ai-media-alt-creator')}>
+                  <span>
+                    <IconButton
+                      size="small"
+                      onClick={typeof onUnmarkDecorative === 'function' ? () => onUnmarkDecorative([mediaId]) : undefined}
+                      disabled={setCategoryPending}
+                      aria-label={__('Unmark Decorative', 'flux-ai-media-alt-creator')}
+                    >
+                      <Restore fontSize="small" />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+              ) : null
+            ) : (
+              rowMarkDecorative ? (
+                <Tooltip title={onMarkDecorativeTooltip || ''}>
+                  <span>
+                    <IconButton
+                      size="small"
+                      onClick={typeof onMarkDecorative === 'function' ? () => onMarkDecorative([mediaId]) : undefined}
+                      disabled={setCategoryPending}
+                      aria-label={__('Mark Decorative', 'flux-ai-media-alt-creator')}
+                    >
+                      <ImageOutlined fontSize="small" />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+              ) : null
+            )}
+
+            {mediaRowActions.map((action) => {
+              const key = action.id || action.featureId;
+              const render = action.render;
+              if (typeof render !== 'function') return null;
+              return (
+                <React.Fragment key={key}>
+                  {render({ media, mediaId })}
+                </React.Fragment>
+              );
+            })}
+          </Stack>
+        </TableCell>
+      ) : null}
     </TableRow>
   );
 }, (prevProps, nextProps) => {
@@ -757,12 +1061,16 @@ const MediaRow = React.memo(({
     prevProps.applyPending === nextProps.applyPending &&
     prevProps.generatePending === nextProps.generatePending &&
     prevProps.setCategoryPending === nextProps.setCategoryPending &&
+    prevProps.showActionsColumn === nextProps.showActionsColumn &&
+    prevProps.resolvedColumns === nextProps.resolvedColumns &&
+    prevProps.rowActionFlags === nextProps.rowActionFlags &&
     prev.scan_status === next.scan_status &&
     prev.filename === next.filename &&
     prev.thumbnail_url === next.thumbnail_url &&
     prev.edit_url === next.edit_url &&
     prev.alt_category === next.alt_category &&
-    prev.current_alt === next.current_alt
+    prev.current_alt === next.current_alt &&
+    prevProps.mediaRowActions === nextProps.mediaRowActions
   );
 });
 

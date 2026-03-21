@@ -80,22 +80,37 @@ class AltTextApiService {
 		if ( ! $attachment_id ) {
 			return '';
 		}
-		$post = get_post( $attachment_id );
-		if ( ! $post || ! $post->post_parent ) {
-			return '';
+
+		$post      = get_post( $attachment_id );
+		$parent    = null;
+		$product_id = 0;
+
+		if ( $post && ! empty( $post->post_parent ) ) {
+			$parent = get_post( $post->post_parent );
+			if ( $parent && in_array( $parent->post_type, [ 'product', 'product_variation' ], true ) ) {
+				$product_id = (int) $parent->ID;
+			}
 		}
-		$parent = get_post( $post->post_parent );
-		if ( ! $parent ) {
-			return '';
+
+		if ( WooCommerceHelper::is_active() && ! $product_id ) {
+			$product_ids = WooCommerceHelper::get_products_for_attachment( $attachment_id );
+			if ( ! empty( $product_ids ) ) {
+				$product_id = (int) $product_ids[0];
+				if ( ! $parent || (int) $parent->ID !== $product_id ) {
+					$parent = get_post( $product_id );
+				}
+			}
 		}
-		if ( WooCommerceHelper::is_active() && $parent->post_type === 'product' ) {
-			$title = $parent->post_title;
-			$product = function_exists( 'wc_get_product' ) ? wc_get_product( $parent->ID ) : null;
-			$parts = [ $title ];
+
+		if ( WooCommerceHelper::is_active() && $product_id ) {
+			$title   = $parent ? $parent->post_title : '';
+			$product = function_exists( 'wc_get_product' ) ? wc_get_product( $product_id ) : null;
+			$parts   = array_filter( [ $title ] );
+
 			if ( $product && is_callable( [ $product, 'get_attribute' ] ) ) {
 				$attrs = [];
 				foreach ( [ 'pa_color', 'pa_size', 'pa_material', 'color', 'size', 'material' ] as $attr ) {
-					$val = $product->get_attribute( $attr );
+					$val = trim( (string) $product->get_attribute( $attr ) );
 					if ( $val !== '' && count( $attrs ) < 2 ) {
 						$attrs[] = $val;
 					}
@@ -104,6 +119,7 @@ class AltTextApiService {
 					$parts[] = implode( ', ', $attrs );
 				}
 			}
+
 			$category = '';
 			if ( $product && is_callable( [ $product, 'get_category_ids' ] ) ) {
 				$cat_ids = $product->get_category_ids();
@@ -117,17 +133,26 @@ class AltTextApiService {
 			if ( $category !== '' ) {
 				$parts[] = $category;
 			}
-			$context = implode( ' — ', $parts );
-			return sprintf(
-				/* translators: %s: product/parent context */
-				__( 'Context: %s.', 'flux-ai-media-alt-creator' ),
-				$context
-			);
+
+			$context = trim( implode( ' — ', array_filter( $parts ) ) );
+			if ( $context !== '' ) {
+				return sprintf(
+					/* translators: %s: product/parent context */
+					__( 'Context: %s.', 'flux-ai-media-alt-creator' ),
+					$context
+				);
+			}
 		}
-		$context = $parent->post_title;
+
+		if ( ! $parent ) {
+			return '';
+		}
+
+		$context = trim( (string) $parent->post_title );
 		if ( $context === '' ) {
 			return '';
 		}
+
 		return sprintf(
 			/* translators: %s: parent post title */
 			__( 'Context: Part of the content "%s".', 'flux-ai-media-alt-creator' ),

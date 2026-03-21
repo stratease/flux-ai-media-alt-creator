@@ -59,7 +59,9 @@ class MediaScanner {
 	}
 
 	/**
-	 * Scan for media files without alt text.
+	 * Get paginated list of media files.
+	 *
+	 * Supports optional compliance filters (alt_category) and optional WooCommerce-only restriction.
 	 *
 	 * @since 1.0.0
 	 * @param int    $page Page number (1-based).
@@ -68,7 +70,7 @@ class MediaScanner {
 	 * @param array  $additional_params Additional search parameters (optional).
 	 * @return array Array with 'data', 'total', 'page', 'per_page', 'total_pages'.
 	 */
-	public function scan_media_without_alt( $page = 1, $per_page = 20, $search = '', $additional_params = [] ) {
+	public function scan_media( $page = 1, $per_page = 20, $search = '', $additional_params = [] ) {
 		/**
 		 * Fires before scanning for media files.
 		 *

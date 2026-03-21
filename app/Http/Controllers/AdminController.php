@@ -77,24 +77,38 @@ class AdminController {
 		}
 
 		$api_key = Settings::get_openai_api_key();
-		
-		if ( empty( $api_key ) ) {
-			$settings_url = admin_url( 'admin.php?page=flux-ai-media-alt-creator#/settings' );
-			?>
-			<div class="notice notice-error">
-				<p>
-					<strong><?php esc_html_e( 'Flux AI Alt Text & Accessibility Audit:', 'flux-ai-media-alt-creator' ); ?></strong>
-					<?php
-					printf(
-						/* translators: %s: Settings page URL */
-						wp_kses_post( __( 'OpenAI API key is not configured. Please <a href="%s">add your API key in Settings</a> to enable alt text generation.', 'flux-ai-media-alt-creator' ) ),
-						esc_url( $settings_url )
-					);
-					?>
-				</p>
-			</div>
-			<?php
+		if ( ! empty( $api_key ) ) {
+			return;
 		}
+
+		/**
+		 * Whether to show the admin notice when the OpenAI API key is empty.
+		 *
+		 * Integrations using another API path (e.g. Pro with a valid license) may return false.
+		 *
+		 * @since 3.2.0
+		 * @param bool $show Whether to show the notice. Default true.
+		 */
+		$show_notice = (bool) apply_filters( 'flux_ai_alt_creator/admin/show_missing_openai_api_key_notice', true );
+		if ( ! $show_notice ) {
+			return;
+		}
+
+		$settings_url = admin_url( 'admin.php?page=flux-ai-media-alt-creator#/settings' );
+		?>
+		<div class="notice notice-error">
+			<p>
+				<strong><?php esc_html_e( 'Flux AI Alt Text & Accessibility Audit:', 'flux-ai-media-alt-creator' ); ?></strong>
+				<?php
+				printf(
+					/* translators: %s: Settings page URL */
+					wp_kses_post( __( 'OpenAI API key is not configured. Please <a href="%s">add your API key in Settings</a> to enable alt text generation.', 'flux-ai-media-alt-creator' ) ),
+					esc_url( $settings_url )
+				);
+				?>
+			</p>
+		</div>
+		<?php
 	}
 
 	/**
@@ -156,6 +170,30 @@ class AdminController {
 		// Get registered tabs via filter.
 		$registered_tabs = apply_filters( 'flux_ai_alt_creator/admin_controller/get_tabs', [] );
 
+		/**
+		 * Media feature registry for the admin UI.
+		 *
+		 * Free provides default feature definitions, and integrations (e.g. Pro) can
+		 * enable/disable/add features by filtering the final array.
+		 *
+		 * If no integration modifies this, the UI should behave exactly as Free.
+		 *
+		 * Top-level keys:
+		 * - `contractVersion` (int): Schema version for the localized payload.
+		 * - `features` (array): Feature id => descriptor with `enabled`, `locations`, `fields`, `actions`, etc.
+		 * - `table` (array): `columns` => ordered list of column definitions:
+		 *     - `id` (string): Stable column id; core ids match MediaPage.js built-in renderers.
+		 *     - `enabled` (bool): When false, the column is hidden.
+		 *     - `priority` (int): Lower values appear first (after the fixed checkbox column).
+		 *     - `label` (string): Header label (typically translated via __()).
+		 *     - `featureId` (string|null): When set, the column shows only if that feature is enabled.
+		 *
+		 * @since 3.2.0
+		 * @since 3.2.0 Documented `table.columns` contract (contractVersion 2).
+		 * @param array $features Default media feature definitions.
+		 */
+		$media_features = apply_filters( 'flux_ai_alt_creator/media/features', self::get_default_media_features() );
+
 		// Check if Pro plugin is active - check both constant and plugin activation status.
 		$is_pro_active = false;
 		if ( defined( 'FLUX_AI_MEDIA_ALT_CREATOR_PRO_VERSION' ) ) {
@@ -175,12 +213,97 @@ class AdminController {
 			'adminUrl' => admin_url(),
 			'pluginUrl' => FLUX_AI_MEDIA_ALT_CREATOR_PLUGIN_URL,
 			'tabs' => $registered_tabs,
+			'mediaFeatures' => $media_features,
 			'isProActive' => $is_pro_active,
 			'isWooCommerceActive' => WooCommerceHelper::is_active(),
 		] );
 
 		// Enqueue WordPress admin styles.
 		wp_enqueue_style( 'wp-components' );
+	}
+
+	/**
+	 * Default media feature definitions for the admin UI.
+	 *
+	 * Integrations can filter `flux_ai_alt_creator/media/features` to enable/disable
+	 * features, and to add new feature descriptors that power additional UI.
+	 *
+	 * Shape is intentionally generic to allow future capabilities without coupling.
+	 *
+	 * @since 3.2.0
+	 * @since 3.2.0 Added `table.columns` and contractVersion 2.
+	 * @return array<string, mixed> Media admin feature contract for localization.
+	 */
+	private static function get_default_media_features() {
+		return [
+			'contractVersion' => 2,
+			'features' => [
+				'alt_text' => [
+					'enabled' => true,
+					'locations' => [ 'media_table_row', 'bulk_actions' ],
+					'fields' => [ 'recommended_alt_text', 'current_alt', 'scan_status' ],
+					'actions' => [
+						'generate' => [ 'enabled' => true ],
+						'apply' => [ 'enabled' => true ],
+					],
+				],
+				'alt_category' => [
+					'enabled' => true,
+					'locations' => [ 'media_table_row', 'bulk_actions' ],
+					'fields' => [ 'alt_category' ],
+					'actions' => [
+						'mark_decorative' => [ 'enabled' => true ],
+						'unmark_decorative' => [ 'enabled' => true ],
+					],
+				],
+			],
+			'table' => [
+				'columns' => [
+					[
+						'id' => 'thumbnail',
+						'enabled' => true,
+						'priority' => 10,
+						'label' => __( 'Thumbnail', 'flux-ai-media-alt-creator' ),
+						'featureId' => null,
+					],
+					[
+						'id' => 'filename',
+						'enabled' => true,
+						'priority' => 20,
+						'label' => __( 'Filename', 'flux-ai-media-alt-creator' ),
+						'featureId' => null,
+					],
+					[
+						'id' => 'current_alt',
+						'enabled' => true,
+						'priority' => 30,
+						'label' => __( 'Alt Text', 'flux-ai-media-alt-creator' ),
+						'featureId' => 'alt_text',
+					],
+					[
+						'id' => 'recommended_alt',
+						'enabled' => true,
+						'priority' => 40,
+						'label' => __( 'Suggested Alt Text', 'flux-ai-media-alt-creator' ),
+						'featureId' => 'alt_text',
+					],
+					[
+						'id' => 'alt_category',
+						'enabled' => true,
+						'priority' => 50,
+						'label' => __( 'Category', 'flux-ai-media-alt-creator' ),
+						'featureId' => 'alt_category',
+					],
+					[
+						'id' => 'scan_status',
+						'enabled' => true,
+						'priority' => 60,
+						'label' => __( 'Status', 'flux-ai-media-alt-creator' ),
+						'featureId' => 'alt_text',
+					],
+				],
+			],
+		];
 	}
 
 	/**

@@ -158,6 +158,7 @@ class ApiService {
       body: JSON.stringify({ media_ids: mediaIds, alt_category: altCategory == null ? '' : String(altCategory) }),
     });
   }
+
 }
 
 // Export singleton instance

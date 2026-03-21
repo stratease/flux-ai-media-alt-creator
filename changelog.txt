@@ -1,3 +1,7 @@
+= 3.2.0 =
+* Upgraded with some better UX for Compliance and Alt Text Generation.
+* Moving some features into a customizable hook entry point for further extensibility.
+
 = 3.1.2 =
 * Patched improper exit on Uninstall operation.
 
