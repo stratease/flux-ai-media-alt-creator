@@ -1,6 +1,6 @@
 {
   "name": "flux-ai-media-alt-creator-admin",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "description": "Flux AI Alt Text & Accessibility Audit by Flux Plugins WordPress plugin",
   "private": true,
   "scripts": {

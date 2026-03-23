@@ -4,7 +4,7 @@ Tags: alt text, accessibility, image seo, ai, wcag, media library, woocommerce
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 8.0
-Stable tag: 3.2.0
+Stable tag: 3.2.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -119,15 +119,15 @@ The plugin supports all standard WordPress image formats, including JPEG, PNG, G
 
 == Changelog ==
 
+= 3.2.1 =
+* Updating Logger for compatibility with php 8.0
+
 = 3.2.0 =
 * Upgraded with some better UX for Compliance and Alt Text Generation.
 * Moving some features into a customizable hook entry point for further extensibility.
 
 = 3.1.2 =
 * Patched improper exit on Uninstall operation.
-
-= 3.1.1 =
-* Fixing fatal caused by improper dependency resolution during build.
 
 
 == Upgrade Notice ==
