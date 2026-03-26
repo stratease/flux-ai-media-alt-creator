@@ -236,9 +236,11 @@ class AltTextApiService {
 
 		// Update scan status and scan data based on result.
 		if ( $result['success'] ) {
+			// @since 3.2.2 Clear stale error state when generation succeeds.
 			MediaScanner::get_instance()->update_scan_status( $attachment_id, 'completed' );
 			MediaScanner::get_instance()->update_scan_data( $attachment_id, [
 				'recommended_alt_text' => $result['alt_text'] ?? '',
+				'error_message' => '',
 			] );
 		} else {
 			MediaScanner::get_instance()->update_scan_status( $attachment_id, 'error' );
@@ -292,9 +294,12 @@ class AltTextApiService {
 		if ( $alt_text === '' ) {
 			update_post_meta( $attachment_id, '_wp_attachment_image_alt', '' );
 			update_post_meta( $attachment_id, ComplianceScanService::ALT_CATEGORY_META_KEY, 'decorative' );
+			// @since 3.2.2 Ensure success paths reset prior error state and status.
+			MediaScanner::get_instance()->update_scan_status( $attachment_id, 'completed' );
 			MediaScanner::get_instance()->update_scan_data( $attachment_id, [
 				'applied' => true,
 				'recommended_alt_text' => '',
+				'error_message' => '',
 			] );
 			return [ 'success' => true, 'alt_text' => '' ];
 		}
@@ -346,11 +351,14 @@ class AltTextApiService {
 			];
 		}
 
-		// Update scan data with applied status if successful.
+		// Update scan status/data with applied status if successful.
 		if ( $result['success'] ) {
+			// @since 3.2.2 Ensure success paths reset prior error state and status.
+			MediaScanner::get_instance()->update_scan_status( $attachment_id, 'completed' );
 			MediaScanner::get_instance()->update_scan_data( $attachment_id, [
 				'applied' => true,
 				'recommended_alt_text' => $alt_text,
+				'error_message' => '',
 			] );
 			// Reclassify so compliance category (e.g. missing → descriptive) is updated immediately.
 			ComplianceScanService::get_instance()->reclassify_attachments( [ $attachment_id ] );
