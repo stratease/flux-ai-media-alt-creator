@@ -169,6 +169,7 @@ class AltTextApiService {
 	 *
 	 * @since 1.0.0
 	 * @since 1.2.0 Added automatic scan status and scan data updates.
+	 * @since 3.2.2 Successful generation now clears stale error_message state.
 	 * @param int    $attachment_id Attachment ID.
 	 * @param string $media_url     Media URL (optional, will be retrieved from attachment if not provided).
 	 * @return array Result array with 'success', 'alt_text', and optionally 'error', 'tokens_used', 'cost'.
@@ -275,6 +276,7 @@ class AltTextApiService {
 	 * via filters. This method also handles updating scan data automatically.
 	 *
 	 * @since 1.2.0
+	 * @since 3.2.2 Successful application now resets scan_status to completed and clears stale error_message state.
 	 * @param int    $attachment_id Attachment ID.
 	 * @param string $alt_text      Alt text to apply (optional, will be retrieved from scan data if not provided).
 	 * @return array Result array with 'success', 'alt_text', and optionally 'error'.

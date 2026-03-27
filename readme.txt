@@ -1,10 +1,10 @@
 === Flux AI Alt Text & Accessibility Audit by Flux Plugins ===
 Contributors: edaniels
-Tags: alt text, accessibility, image seo, ai, wcag, media library, woocommerce
+Tags: alt text, accessibility, ai, wcag, woocommerce
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 8.0
-Stable tag: 3.2.1
+Stable tag: 3.2.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -104,8 +104,10 @@ The plugin supports all standard WordPress image formats, including JPEG, PNG, G
 
 == Screenshots ==
 
-1. Overview dashboard with usage statistics and compliance scan
-2. Media interface with batch processing, scan results, and editable alt text recommendations
+1. Instantly updates and improves image alt text across your entire Media Library
+2. Compliance Dashboard summarizing scan results and coverage risk
+3. OpenAI usage estimation and provider statistics
+4. Media management interface for batch editing and applying alt text
 
 == Installation ==
 
@@ -119,15 +121,15 @@ The plugin supports all standard WordPress image formats, including JPEG, PNG, G
 
 == Changelog ==
 
+= 3.2.2 =
+* Fixing state of error reported on media items even after error is no longer present.
+
 = 3.2.1 =
 * Updating Logger for compatibility with php 8.0
 
 = 3.2.0 =
 * Upgraded with some better UX for Compliance and Alt Text Generation.
 * Moving some features into a customizable hook entry point for further extensibility.
-
-= 3.1.2 =
-* Patched improper exit on Uninstall operation.
 
 
 == Upgrade Notice ==
